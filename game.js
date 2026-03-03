@@ -463,6 +463,13 @@ const game = {
         this.currentState = 'race';
         this.isRunning = true;
 
+        // Play Background Music (Lo-Fi)
+        const music = document.getElementById('bg-music');
+        if (music) {
+            music.volume = 0.4; // Lofi volume suave
+            music.play().catch(e => console.log("Music autoplay blocked, waiting for interaction."));
+        }
+
         // Re-create player car with current skin
         if (this.playerCar) {
             this.scene.remove(this.playerCar.mesh);
@@ -722,6 +729,11 @@ const game = {
 
     goToMenu() {
         this.lap = 1;
+
+        // Lower music volume for menu
+        const music = document.getElementById('bg-music');
+        if (music) music.volume = 0.2;
+
         // Switch track for next round
         this.currentTrackIndex = (this.currentTrackIndex + 1) % this.tracks.length;
         this.createTrack(); // Rebuild track for new environment
