@@ -644,15 +644,20 @@ const game = {
         this.isRunning = false;
         clearInterval(this.timerInterval);
 
-        // Calculate Position and Reward
+        // Accurate Final Position Calculation (Laps + Progress)
+        const trackLen = 10000;
         let finalPos = 1;
+        const playerProgress = (this.totalLaps) * trackLen; // Player just finished
+
         this.opponents.forEach(opp => {
-            if (opp.zPos < this.playerCar.zPos) finalPos++;
+            const oppProgress = (opp.lap - 1) * trackLen + Math.abs(opp.zPos);
+            if (oppProgress > playerProgress) finalPos++;
         });
 
+        // REWARDS
         const positionReward = Math.max(0, 1000 - (finalPos - 1) * 200);
-        const roundBonus = 200; // Bônus obrigatório por rodada
-        const totalReward = positionReward + roundBonus;
+        const mandatoryBonus = 200; // OBRIGATÓRIO: Ganha sempre que termina
+        const totalReward = positionReward + mandatoryBonus;
 
         economy.addCoins(totalReward);
 
