@@ -27,7 +27,8 @@ const economy = {
         { id: 'taxi', name: 'Táxi Perigoso', color: 0xffcc00, cost: 150 },
         { id: 'police', name: 'Rocam Fake', color: 0x003366, cost: 200 },
         { id: 'dogeram', name: 'Doge Ram (Especial)', color: 0xffaa00, cost: 700 },
-        { id: 'fusca_azul', name: 'Fusca Azul', color: 0x0055ff, cost: 300 }
+        { id: 'fusca_azul', name: 'Fusca Azul', color: 0x0055ff, cost: 300 },
+        { id: 'batmobile', name: 'Batmovel (Legendário)', color: 0x111111, cost: 10000 }
     ],
     unlockedSkins: JSON.parse(localStorage.getItem('turbo_skins_unlocked')) || ['default'],
     selectedSkin: localStorage.getItem('turbo_selected_skin') || 'default',
@@ -62,7 +63,12 @@ const economy = {
             if (el) el.innerText = this.coins;
         });
 
-        // Update inventory list in shop
+        // Update inventory counter and list in shop
+        const counterEl = document.getElementById('upgrades-counter');
+        if (counterEl) {
+            counterEl.innerText = `UPGRADES ATIVOS (${this.inventory.length}/10):`;
+        }
+
         const invList = document.getElementById('upgrades-list');
         if (invList) {
             invList.innerHTML = '';
@@ -134,6 +140,11 @@ const economy = {
     },
 
     buyRandomUpgrade() {
+        if (this.inventory.length >= 10) {
+            alert('Limite de upgrades atingido! (Máximo: 10). Remova algum para comprar novos.');
+            return;
+        }
+
         if (this.coins < this.currentUpgradeCost) {
             alert('Moedas insuficientes!');
             return;

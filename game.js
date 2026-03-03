@@ -385,70 +385,191 @@ const game = {
     },
 
     createFusca(color) {
-        console.log("Creating Fusca with color:", color);
+        console.log("Creating Remodeled Fusca with color:", color);
         const fuscaGroup = new THREE.Group();
 
-        // Main Rounded Body
-        const bodyGeo = new THREE.SphereGeometry(2.5, 32, 32);
-        const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3 });
-        const body = new THREE.Mesh(bodyGeo, bodyMat);
-        body.scale.set(0.9, 0.6, 1.3); // Base body
-        body.position.y = 1.6;
-        fuscaGroup.add(body);
+        // Material setup
+        const bodyMat = new THREE.MeshStandardMaterial({
+            color: color,
+            roughness: 0.2,
+            metalness: 0.1
+        });
+        const chromeMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            metalness: 1,
+            roughness: 0.1
+        });
+        const glassMat = new THREE.MeshStandardMaterial({
+            color: 0x333333,
+            metalness: 0.9,
+            roughness: 0,
+            transparent: true,
+            opacity: 0.8
+        });
 
-        // Cabin
-        const cabinGeo = new THREE.SphereGeometry(2, 32, 32);
+        // 1. Lower Body (Chassis principal)
+        const lowerBodyGeo = new THREE.CapsuleGeometry(1.8, 4.5, 4, 12);
+        const lowerBody = new THREE.Mesh(lowerBodyGeo, bodyMat);
+        lowerBody.rotation.x = Math.PI / 2;
+        lowerBody.position.y = 1.2;
+        lowerBody.scale.set(1.2, 1, 1);
+        fuscaGroup.add(lowerBody);
+
+        // 2. Upper Cabin (Teto arqueado clássico)
+        const cabinGeo = new THREE.SphereGeometry(2.1, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2);
         const cabin = new THREE.Mesh(cabinGeo, bodyMat);
-        cabin.scale.set(0.8, 0.8, 0.8);
-        cabin.position.set(0, 2.5, -0.4);
+        cabin.position.set(0, 1.2, -0.2);
+        cabin.scale.set(0.85, 0.8, 1.1);
         fuscaGroup.add(cabin);
 
-        // Fenders (Paralamas) - Very prominent on Fusca
-        const fenderGeo = new THREE.SphereGeometry(1.2, 16, 16);
-        const fenderPositions = [
-            [2.0, 1.2, 1.5], [-2.0, 1.2, 1.5],
-            [2.0, 1.2, -1.5], [-2.0, 1.2, -1.5]
+        // 3. Windows (Simulados com esferas escuras menores)
+        const windowGeo = new THREE.SphereGeometry(2.0, 12, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+        const windows = new THREE.Mesh(windowGeo, glassMat);
+        windows.position.set(0, 1.25, -0.2);
+        windows.scale.set(0.88, 0.78, 1.08);
+        fuscaGroup.add(windows);
+
+        // 4. Fenders (Paralamas icônicos)
+        const fenderGeo = new THREE.SphereGeometry(1.1, 12, 12);
+        const fenderPos = [
+            [1.8, 0.8, 1.8], [-1.8, 0.8, 1.8], // Front
+            [1.8, 0.8, -1.8], [-1.8, 0.8, -1.8] // Rear
         ];
-        fenderPositions.forEach(pos => {
+        fenderPos.forEach(pos => {
             const fender = new THREE.Mesh(fenderGeo, bodyMat);
-            fender.scale.set(0.7, 0.8, 1.2);
+            fender.scale.set(0.6, 0.8, 1.4);
             fender.position.set(...pos);
             fuscaGroup.add(fender);
         });
 
-        // Wheels
-        const wheelGeo = new THREE.CylinderGeometry(0.9, 0.9, 0.7, 16);
-        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a });
-        const wheelPos = [
-            [2.2, 0.9, 1.5], [-2.2, 0.9, 1.5],
-            [2.2, 0.9, -1.5], [-2.2, 0.9, -1.5]
-        ];
-        wheelPos.forEach(pos => {
-            const w = new THREE.Mesh(wheelGeo, wheelMat);
-            w.rotation.z = Math.PI / 2;
-            w.position.set(...pos);
-            fuscaGroup.add(w);
+        // 5. Wheels (Rodas com calotas cromadas)
+        const wheelGeo = new THREE.CylinderGeometry(0.85, 0.85, 0.8, 16);
+        const tireMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+        const hubcapGeo = new THREE.SphereGeometry(0.5, 8, 8);
+
+        fenderPos.forEach(pos => {
+            // Tire
+            const tire = new THREE.Mesh(wheelGeo, tireMat);
+            tire.rotation.z = Math.PI / 2;
+            tire.position.set(pos[0] * 1.1, 0.85, pos[2]);
+            fuscaGroup.add(tire);
+
+            // Chrome Hubcap
+            const hubcap = new THREE.Mesh(hubcapGeo, chromeMat);
+            hubcap.scale.set(0.4, 0.8, 0.8);
+            hubcap.position.set(pos[0] * 1.5, 0.85, pos[2]);
+            fuscaGroup.add(hubcap);
         });
 
-        // Headlights (Round, iconic)
-        const lightGeo = new THREE.CircleGeometry(0.5, 32);
-        const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const l1 = new THREE.Mesh(lightGeo, lightMat);
-        l1.position.set(1.4, 1.6, 2.8);
-        l1.rotation.y = 0;
+        // 6. Headlights (Faróis redondos com borda cromada)
+        const lightGeo = new THREE.SphereGeometry(0.4, 12, 12);
+        const l1 = new THREE.Mesh(lightGeo, new THREE.MeshBasicMaterial({ color: 0xffffee }));
+        l1.position.set(1.2, 1.6, 3.2);
         fuscaGroup.add(l1);
-        const l2 = l1.clone();
-        l2.position.set(-1.4, 1.6, 2.8);
-        fuscaGroup.add(l2);
 
-        // Bumper (Front Chrome)
-        const bGeo = new THREE.BoxGeometry(4.5, 0.3, 0.3);
-        const bMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.8 });
-        const frontBumper = new THREE.Mesh(bGeo, bMat);
-        frontBumper.position.set(0, 0.8, 3.2);
+        const r1 = l1.clone();
+        r1.position.set(-1.2, 1.6, 3.2);
+        fuscaGroup.add(r1);
+
+        // 7. Bumpers (Parachoques cromados curvos)
+        const bumperGeo = new THREE.BoxGeometry(3.5, 0.2, 0.3);
+        const frontBumper = new THREE.Mesh(bumperGeo, chromeMat);
+        frontBumper.position.set(0, 0.7, 3.8);
         fuscaGroup.add(frontBumper);
 
+        const rearBumper = frontBumper.clone();
+        rearBumper.position.set(0, 0.7, -3.8);
+        fuscaGroup.add(rearBumper);
+
         return fuscaGroup;
+    },
+
+    createBatmobile() {
+        console.log("Creating Batmobile...");
+        const batGroup = new THREE.Group();
+
+        const blackMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.2, metalness: 0.8 });
+        const accentMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.1, metalness: 1 });
+        const fireMat = new THREE.MeshBasicMaterial({ color: 0xff3300 });
+
+        // 1. Chassis (Baixo e Largo)
+        const chassis = new THREE.Mesh(new THREE.BoxGeometry(6, 0.8, 12), blackMat);
+        chassis.position.y = 0.6;
+        batGroup.add(chassis);
+
+        // 2. Cockpit (Estilo Jato)
+        const cockpit = new THREE.Mesh(new THREE.CapsuleGeometry(1.5, 3, 4, 8), blackMat);
+        cockpit.rotation.x = Math.PI / 2;
+        cockpit.position.set(0, 1.2, 0);
+        cockpit.scale.set(1.2, 1, 0.8);
+        batGroup.add(cockpit);
+
+        const glass = new THREE.Mesh(new THREE.SphereGeometry(1.4, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+            new THREE.MeshStandardMaterial({ color: 0xffaa00, transparent: true, opacity: 0.4, metalness: 1 }));
+        glass.position.set(0, 1.3, 1.5);
+        glass.scale.set(0.8, 0.5, 1.2);
+        batGroup.add(glass);
+
+        // 3. Wings (Aletas Traseiras)
+        const wingGeo = new THREE.BufferGeometry();
+        const vertices = new Float32Array([
+            0, 0, 0,   // base front
+            0, 3, -4,  // top tip
+            0, 0, -5   // base back
+        ]);
+        wingGeo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        wingGeo.computeVertexNormals();
+
+        const leftWing = new THREE.Mesh(wingGeo, blackMat);
+        leftWing.position.set(2.8, 0.8, -1);
+        batGroup.add(leftWing);
+
+        const rightWing = leftWing.clone();
+        rightWing.position.set(-2.8, 0.8, -1);
+        batGroup.add(rightWing);
+
+        // 4. Massive Wheels
+        const tireGeo = new THREE.CylinderGeometry(1.4, 1.4, 1.2, 16);
+        const rimGeo = new THREE.CylinderGeometry(0.8, 0.8, 1.3, 16);
+        const wheelPos = [
+            [2.8, 1.2, 3.5], [-2.8, 1.2, 3.5], // Front
+            [3.2, 1.4, -3.5], [-3.2, 1.4, -3.5] // Rear (Larger)
+        ];
+
+        wheelPos.forEach((pos, i) => {
+            const tire = new THREE.Mesh(tireGeo, new THREE.MeshStandardMaterial({ color: 0x000000 }));
+            if (i >= 2) tire.scale.set(1.2, 1.2, 1.2); // Bigger back tires
+            tire.rotation.z = Math.PI / 2;
+            tire.position.set(...pos);
+            batGroup.add(tire);
+
+            const rim = new THREE.Mesh(rimGeo, accentMat);
+            rim.rotation.z = Math.PI / 2;
+            rim.position.set(...pos);
+            batGroup.add(rim);
+        });
+
+        // 5. Turbine Exhaust
+        const turbine = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.2, 1.5, 16), accentMat);
+        turbine.rotation.x = Math.PI / 2;
+        turbine.position.set(0, 0.8, -6);
+        batGroup.add(turbine);
+
+        const flame = new THREE.Mesh(new THREE.ConeGeometry(0.6, 2, 8), fireMat);
+        flame.rotation.x = -Math.PI / 2;
+        flame.position.set(0, 0.8, -7.5);
+        flame.name = "bat_flame";
+        batGroup.add(flame);
+
+        // 6. Front Lights (Red/Orange menacing glow)
+        const light = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.2, 0.2), new THREE.MeshBasicMaterial({ color: 0xff3300 }));
+        light.position.set(1.5, 0.8, 5.8);
+        batGroup.add(light);
+        const light2 = light.clone();
+        light2.position.set(-1.5, 0.8, 5.8);
+        batGroup.add(light2);
+
+        return batGroup;
     },
 
 
@@ -462,6 +583,8 @@ const game = {
             carGroup = this.createDogeRam(skinColor);
         } else if (selectedId === 'fusca_azul') {
             carGroup = this.createFusca(skinColor);
+        } else if (selectedId === 'batmobile') {
+            carGroup = this.createBatmobile();
         } else {
             carGroup = this.createFiatUno(skinColor);
         }
@@ -505,8 +628,8 @@ const game = {
             this.opponents.push({
                 mesh: oppGroup,
                 speed: 0,
-                targetSpeed: 160 + Math.random() * 50,
-                accel: 25 + Math.random() * 15,
+                targetSpeed: (160 + Math.random() * 50) * 1.1, // 10% mais rápido que antes
+                accel: (25 + Math.random() * 15) * 1.1,       // 10% mais aceleração
                 xPos: x,
                 zPos: z,
                 lap: 1 // Start at lap 1 like player
@@ -648,6 +771,17 @@ const game = {
                 this.finishRace();
             } else {
                 document.getElementById('hud-lap').innerText = `${this.lap}/3`;
+            }
+        }
+
+        // Batmobile Turbine Flame Effect
+        const batFlame = this.playerCar.mesh.getObjectByName("bat_flame");
+        if (batFlame) {
+            if (this.keys.w && this.playerCar.speed > 10) {
+                batFlame.visible = true;
+                batFlame.scale.set(1 + Math.random() * 0.4, 1 + Math.random() * 0.8, 1 + Math.random() * 0.4);
+            } else {
+                batFlame.visible = false;
             }
         }
 
