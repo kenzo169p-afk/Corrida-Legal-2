@@ -35,10 +35,10 @@ const game = {
 
     // Configuration
     TRACK_SEGMENT_LENGTH: 100,
-    CAR_MAX_SPEED: 200,
-    ACCEL: 0.1,
-    DECEL: 0.05,
-    DRIFT_INTENSITY: 0.05,
+    CAR_MAX_SPEED: 320, // Aumentado para sensação Asphalt
+    ACCEL: 80,          // Base acceleration (multiplied by delta)
+    DECEL: 40,          // Base deceleration
+    DRIFT_INTENSITY: 0.15,
 
     // Input
     keys: { w: false, a: false, s: false, d: false, space: false },
@@ -378,18 +378,21 @@ const game = {
         const accel = this.ACCEL * effects.accel;
 
         if (this.keys.w) {
-            this.playerCar.speed += accel;
+            this.playerCar.speed += accel * delta;
         } else if (this.keys.s) {
-            this.playerCar.speed -= this.DECEL * 2;
+            this.playerCar.speed -= this.DECEL * 2 * delta;
         } else {
-            this.playerCar.speed -= this.DECEL;
+            this.playerCar.speed -= this.DECEL * delta;
         }
 
         // Nitro Boost
         const nitroFlame = this.playerCar.mesh.getObjectByName("nitro_flame");
         if (this.keys.space && this.playerCar.speed > 0) {
-            this.playerCar.speed += (accel * 4 * effects.nitro);
-            if (nitroFlame) nitroFlame.visible = true;
+            this.playerCar.speed += (accel * 5 * effects.nitro * delta);
+            if (nitroFlame) {
+                nitroFlame.visible = true;
+                nitroFlame.scale.setScalar(1 + Math.random() * 0.5); // Flame flicker
+            }
             document.getElementById('nitro-bar').style.width = '100%';
         } else {
             if (nitroFlame) nitroFlame.visible = false;
@@ -451,8 +454,18 @@ const game = {
             }
         });
 
-        // Update HUD
-        document.getElementById('speed-val').innerText = Math.floor(this.playerCar.speed);
+        // Update HUD Speed (Guaranteed update)
+        const speedEl = document.getElementById('speed-val');
+        if (speedEl) {
+            const currentSpeed = Math.floor(this.playerCar.speed);
+            speedEl.textContent = currentSpeed.toString().padStart(3, '0');
+
+            // Force HUD visibility during race
+            const hudSpeed = document.getElementById('hud-speed');
+            if (hudSpeed && hudSpeed.classList.contains('hidden')) {
+                hudSpeed.classList.remove('hidden');
+            }
+        }
 
         // Position Tracking (Simple distance based)
         let pos = 1;

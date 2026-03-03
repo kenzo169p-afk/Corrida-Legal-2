@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turbo Drift Evolution | High Speed Arcade</title>
     <link rel="stylesheet" href="style.css">
     <!-- Meta tags for SEO & GitHub Pages -->
-    <meta name="description" content="Turbo Drift Evolution - Jogo de corrida arcade 3D com sistema de drifts e upgrades aleatórios.">
+    <meta name="description"
+        content="Turbo Drift Evolution - Jogo de corrida arcade 3D com sistema de drifts e upgrades aleatórios.">
     <!-- Three.js CDN -->
     <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -18,17 +20,19 @@
     }
     </script>
 </head>
+
 <body>
     <canvas id="game-canvas"></canvas>
 
     <!-- UI Overlay -->
     <div id="ui-overlay">
-        
+
         <!-- Main Menu -->
         <div id="main-menu" class="screen">
             <h1 class="panel">Turbo Drift Evolution</h1>
             <div class="panel">
-                <p style="margin-bottom: 20px; text-align: center; opacity: 0.8;">🏁 Domine as pistas. Sobreviva ao caos.</p>
+                <p style="margin-bottom: 20px; text-align: center; opacity: 0.8;">🏁 Domine as pistas. Sobreviva ao
+                    caos.</p>
                 <div style="display: flex; flex-direction: column; width: 300px;">
                     <button class="btn primary" onclick="game.startRace()">INICIAR CORRIDA</button>
                     <button class="btn" onclick="game.showShop()">THE CHAOS SHOP</button>
@@ -43,30 +47,61 @@
 
         <!-- HUD: Race Information -->
         <div id="hud" class="hidden">
-            <div class="hud-item">
-                <span class="hud-label">Lap</span>
-                <span id="hud-lap" class="hud-value">1/3</span>
+            <!-- Game Title (Persistent) -->
+            <div id="race-title"
+                style="position: fixed; top: 10px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; width: auto;">
+                <h1 style="font-size: 1.8rem; margin: 0; text-shadow: 0 0 20px var(--primary); color: white;">TURBO
+                    DRIFT EVOLUTION</h1>
+                <div id="hud-msg" class="hud-label"
+                    style="color: var(--secondary); font-size: 0.9rem; letter-spacing: 4px; font-weight: 700;">SÃO PAULO
+                    2077</div>
             </div>
-            <div class="hud-item">
-                <span class="hud-label">Position</span>
-                <span id="hud-pos" class="hud-value">1/6</span>
-            </div>
-            <div class="hud-item">
-                <span class="hud-label">Timer</span>
-                <span id="hud-timer" class="hud-value">00:00.00</span>
-            </div>
-            <div class="hud-item">
-                <span id="hud-msg" class="hud-label" style="color: var(--secondary);">LEVEL 1</span>
+
+            <!-- Race Stats (Top Left) -->
+            <div style="display: flex; gap: 15px; position: fixed; top: 20px; left: 20px;">
+                <div class="hud-item">
+                    <span class="hud-label">Lap</span>
+                    <span id="hud-lap" class="hud-value">1/3</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Posição</span>
+                    <span id="hud-pos" class="hud-value">1/6</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Tempo</span>
+                    <span id="hud-timer" class="hud-value" style="font-family: monospace;">00:00.00</span>
+                </div>
             </div>
         </div>
 
-        <!-- Speedometer -->
-        <div id="hud-speed" class="hidden" style="position: absolute; bottom: 30px; right: 40px; text-align: right;">
-            <div class="hud-value" style="font-size: 3rem; color: var(--primary);"><span id="speed-val">0</span> <span style="font-size: 1rem; opacity: 0.5;">KM/H</span></div>
-            <div style="width: 200px; height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; margin-top: 10px;">
-                <div id="nitro-bar" style="width: 100%; height: 100%; background: var(--secondary); box-shadow: 0 0 10px var(--secondary);"></div>
+        <!-- Speedometer (Bottom Right) -->
+        <div id="hud-speed" class="hidden"
+            style="position: fixed; bottom: 40px; right: 40px; z-index: 1000; pointer-events: none;">
+            <div
+                style="background: rgba(0,0,0,0.8); padding: 25px; border-radius: 20px; border: 3px solid var(--primary); box-shadow: 0 0 40px rgba(0, 242, 255, 0.4); text-align: right; min-width: 280px;">
+                <div
+                    style="color: var(--primary); font-size: 0.9rem; font-weight: 900; letter-spacing: 2px; margin-bottom: -10px;">
+                    VELOCIDADE</div>
+                <div
+                    style="font-size: 6rem; font-weight: 900; color: white; text-shadow: 0 0 30px var(--primary); line-height: 1;">
+                    <span id="speed-val">000</span>
+                    <span style="font-size: 1.5rem; opacity: 0.5;">KM/H</span>
+                </div>
+                <!-- Nitro Gauge -->
+                <div style="margin-top: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="font-size: 0.7rem; color: var(--secondary); font-weight: bold;">NITRO /
+                            BOOST</span>
+                        <span style="font-size: 0.7rem; color: white; opacity: 0.6;">READY</span>
+                    </div>
+                    <div
+                        style="width: 100%; height: 12px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2);">
+                        <div id="nitro-bar"
+                            style="width: 100%; height: 100%; background: linear-gradient(90deg, #ff00ff, #00f2ff); box-shadow: 0 0 20px #ff00ff;">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="hud-label">NITRO / BOOST</div>
         </div>
 
         <!-- Chaos Shop -->
@@ -74,7 +109,7 @@
             <div class="panel" style="width: 80%; max-width: 800px;">
                 <h2>The Chaos Shop</h2>
                 <p>Compre upgrades misteriosos. Um benefício... ou um desastre?</p>
-                
+
                 <div style="display: flex; justify-content: space-around; align-items: center; padding: 20px;">
                     <div id="gacha-container" class="gacha-box" onclick="economy.buyRandomUpgrade()">
                         <div style="text-align: center;">
@@ -82,7 +117,7 @@
                             <div id="upgrade-cost" class="hud-label">CUSTO: 50</div>
                         </div>
                     </div>
-                    
+
                     <div id="current-upgrades" style="flex: 1; margin-left: 40px;">
                         <span class="hud-label">UPGRADES ATIVOS:</span>
                         <div id="upgrades-list" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
@@ -105,7 +140,7 @@
         <div id="results-screen" class="screen hidden">
             <div class="panel" style="width: 90%; max-width: 600px;">
                 <h2 id="final-result-title">RESULTADOS DA CORRIDA</h2>
-                
+
                 <table class="leaderboard-table">
                     <thead>
                         <tr>
@@ -133,4 +168,5 @@
     <script src="economy.js"></script>
     <script type="module" src="game.js"></script>
 </body>
+
 </html>

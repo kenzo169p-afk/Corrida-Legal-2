@@ -96,18 +96,28 @@ h2 {
     font-size: 2rem;
     margin-bottom: 15px;
     color: var(--primary);
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+}
+
+#hud-speed {
+    z-index: 999;
 }
 
 /* HUD */
 #hud {
-    position: absolute;
+    position: fixed;
     top: 20px;
     left: 20px;
     right: 20px;
     display: flex;
     justify-content: space-between;
     pointer-events: none;
-    z-index: 5;
+    z-index: 999;
+    /* Ensure it stays on top */
+}
+
+#race-title {
+    z-index: 1000;
 }
 
 .hud-item {
