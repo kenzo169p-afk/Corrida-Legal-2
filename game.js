@@ -90,45 +90,101 @@ const game = {
         });
         toRemove.forEach(obj => this.scene.remove(obj));
 
-        // Create a simple procedural loop track
-        const trackLength = 5000;
-        const width = 60;
+        const trackLength = 10000;
+        const width = 70;
 
+        // Road Structure
         const roadGeo = new THREE.PlaneGeometry(width, trackLength);
         const roadMat = new THREE.MeshStandardMaterial({
-            color: 0x111111,
-            roughness: 0.8,
-            metalness: 0.2
+            color: 0x1a1a1a,
+            roughness: 0.9,
+            metalness: 0.1
         });
 
         const road = new THREE.Mesh(roadGeo, roadMat);
         road.name = 'track_element';
         road.rotation.x = -Math.PI / 2;
+        road.position.z = -trackLength / 2 + 100; // Shift to start at 0
         road.receiveShadow = true;
         this.scene.add(road);
 
-        // Lines
-        const lineGeo = new THREE.PlaneGeometry(1, trackLength);
+        // Lines and Markings
         const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const leftLine = new THREE.Mesh(lineGeo, lineMat);
-        leftLine.position.set(-width / 2 + 1, 0.01, 0);
-        leftLine.rotation.x = -Math.PI / 2;
-        road.add(leftLine);
+        const yellowMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
 
-        const rightLine = new THREE.Mesh(lineGeo, lineMat);
-        rightLine.position.set(width / 2 - 1, 0.01, 0);
-        rightLine.rotation.x = -Math.PI / 2;
-        road.add(rightLine);
+        // Side curbs (Zebras - Red & White)
+        const curbWidth = 4;
+        const curbLength = 20;
+        const curbGeo = new THREE.BoxGeometry(curbWidth, 0.5, curbLength);
 
-        // Center dashed line
-        const dashedGeo = new THREE.PlaneGeometry(0.5, trackLength);
-        const dashedMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-        const centerLine = new THREE.Mesh(dashedGeo, dashedMat);
-        centerLine.position.set(0, 0.01, 0);
-        centerLine.rotation.x = -Math.PI / 2;
-        road.add(centerLine);
+        for (let z = 0; z < trackLength; z += curbLength * 2) {
+            // Left Zebra
+            const curbL = new THREE.Mesh(curbGeo, new THREE.MeshBasicMaterial({ color: 0xff3333 }));
+            curbL.name = 'track_element';
+            curbL.position.set(-width / 2 - curbWidth / 2, 0.25, -z);
+            this.scene.add(curbL);
 
-        // Track Environment
+            const curbLWhite = new THREE.Mesh(curbGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+            curbLWhite.name = 'track_element';
+            curbLWhite.position.set(-width / 2 - curbWidth / 2, 0.25, -z - curbLength);
+            this.scene.add(curbLWhite);
+
+            // Right Zebra
+            const curbR = new THREE.Mesh(curbGeo, new THREE.MeshBasicMaterial({ color: 0xff3333 }));
+            curbR.name = 'track_element';
+            curbR.position.set(width / 2 + curbWidth / 2, 0.25, -z);
+            this.scene.add(curbR);
+
+            const curbRWhite = new THREE.Mesh(curbGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+            curbRWhite.name = 'track_element';
+            curbRWhite.position.set(width / 2 + curbWidth / 2, 0.25, -z - curbLength);
+            this.scene.add(curbRWhite);
+        }
+
+        // Metal Guard Rails
+        const barrierGeo = new THREE.BoxGeometry(1, 4, trackLength);
+        const barrierMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 1, roughness: 0.2 });
+
+        const leftBarrier = new THREE.Mesh(barrierGeo, barrierMat);
+        leftBarrier.name = 'track_element';
+        leftBarrier.position.set(-width / 2 - curbWidth - 1, 2, -trackLength / 2);
+        this.scene.add(leftBarrier);
+
+        const rightBarrier = new THREE.Mesh(barrierGeo, barrierMat);
+        rightBarrier.name = 'track_element';
+        rightBarrier.position.set(width / 2 + curbWidth + 1, 2, -trackLength / 2);
+        this.scene.add(rightBarrier);
+
+        // Checkered Finish Line
+        const finishGeo = new THREE.PlaneGeometry(width, 10);
+        const finishCanvas = document.createElement('canvas');
+        finishCanvas.width = 512;
+        finishCanvas.height = 128;
+        const ctx = finishCanvas.getContext('2d');
+        const size = 32;
+        for (let x = 0; x < finishCanvas.width; x += size) {
+            for (let y = 0; y < finishCanvas.height; y += size) {
+                ctx.fillStyle = (Math.floor(x / size) + Math.floor(y / size)) % 2 === 0 ? '#ffffff' : '#000000';
+                ctx.fillRect(x, y, size, size);
+            }
+        }
+        const finishTex = new THREE.CanvasTexture(finishCanvas);
+        const finishMat = new THREE.MeshBasicMaterial({ map: finishTex });
+        const finishLine = new THREE.Mesh(finishGeo, finishMat);
+        finishLine.name = 'track_element';
+        finishLine.rotation.x = -Math.PI / 2;
+        finishLine.position.set(0, 0.1, 0);
+        this.scene.add(finishLine);
+
+        // Center dashed lines
+        for (let z = 50; z < trackLength; z += 100) {
+            const dash = new THREE.Mesh(new THREE.PlaneGeometry(1, 20), lineMat);
+            dash.name = 'track_element';
+            dash.rotation.x = -Math.PI / 2;
+            dash.position.set(0, 0.05, -z);
+            this.scene.add(dash);
+        }
+
         this.createEnv(trackLength);
     },
 
@@ -305,13 +361,19 @@ const game = {
         for (let i = 0; i < 5; i++) {
             const oppGroup = this.createFiatUno(colors[i]);
 
-            oppGroup.position.set((i - 2) * 10, 0, -100 - (i * 20));
+            // Grid layout: player at 0, AI at sides and slightly behind
+            // i=0: left (+1), i=1: right (+1), i=2: left (+2), etc.
+            const x = (i % 2 === 0 ? -12 : 12);
+            const z = -20 - (Math.floor(i / 2) * 20);
+
+            oppGroup.position.set(x, 0, z);
             this.opponents.push({
                 mesh: oppGroup,
-                speed: 150 + Math.random() * 20,
-                xPos: (i - 2) * 10,
-                zPos: -100 - (i * 20),
-                lane: (i - 2) * 10
+                speed: 0,
+                targetSpeed: 160 + Math.random() * 40,
+                accel: 30 + Math.random() * 20,
+                xPos: x,
+                zPos: z
             });
             this.scene.add(oppGroup);
         }
@@ -420,9 +482,10 @@ const game = {
         this.playerCar.zPos -= this.playerCar.speed * 0.1;
 
         // Lap Logic (Modulo track length)
-        const trackLength = 5000;
+        const trackLength = 10000;
         if (Math.abs(this.playerCar.zPos) >= trackLength) {
             this.playerCar.zPos = 0;
+            this.playerCar.mesh.position.z = 0; // Snap to start
             this.lap++;
             if (this.lap > this.totalLaps) {
                 this.finishRace();
@@ -442,8 +505,15 @@ const game = {
 
         // Update AI
         this.opponents.forEach(opp => {
+            // Accelerate to target speed
+            if (opp.speed < opp.targetSpeed) {
+                opp.speed += opp.accel * delta;
+            }
+
             opp.zPos -= opp.speed * 0.1;
-            if (Math.abs(opp.zPos) >= trackLength) opp.zPos = 0;
+            if (Math.abs(opp.zPos) >= trackLength) {
+                opp.zPos = 0;
+            }
             opp.mesh.position.z = opp.zPos;
 
             // Basic Collision Check
