@@ -27,8 +27,9 @@ const economy = {
         { id: 'taxi', name: 'Táxi Perigoso', color: 0xffcc00, cost: 150 },
         { id: 'police', name: 'Rocam Fake', color: 0x003366, cost: 200 },
         { id: 'dogeram', name: 'Doge Ram (Especial)', color: 0xffaa00, cost: 700 },
-        { id: 'fusca_azul', name: 'Fusca Azul', color: 0x0055ff, cost: 300 },
-        { id: 'batmobile', name: 'Batmovel (Legendário)', color: 0x111111, cost: 10000 }
+        { id: 'bmw320i', name: 'BMW 320i M-Sport', color: 0x3366ff, cost: 2000 },
+        { id: 'batmobile', name: 'Batmovel (Legendário)', color: 0x111111, cost: 10000 },
+        { id: 'the_cube', name: 'O Quadrado Supremo', color: 0xffffff, cost: 1000000000 }
     ],
     unlockedSkins: JSON.parse(localStorage.getItem('turbo_skins_unlocked')) || ['default'],
     selectedSkin: localStorage.getItem('turbo_selected_skin') || 'default',
