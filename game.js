@@ -328,11 +328,74 @@ const game = {
         return unoGroup;
     },
 
+    createDogeRam(color) {
+        console.log("Creating Doge Ram Pickup...");
+        const ramGroup = new THREE.Group();
+
+        // Huge Pickup Body
+        const bodyGeo = new THREE.BoxGeometry(5.5, 2.5, 10);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.y = 1.5;
+        ramGroup.add(body);
+
+        // Cab (Front part)
+        const cabGeo = new THREE.BoxGeometry(5, 2, 4);
+        const cab = new THREE.Mesh(cabGeo, bodyMat);
+        cab.position.set(0, 3.5, 1);
+        ramGroup.add(cab);
+
+        // Bed (Flatbed / Caçamba)
+        const bedGeo = new THREE.BoxGeometry(4.5, 0.5, 4.5);
+        const bedMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+        const bed = new THREE.Mesh(bedGeo, bedMat);
+        bed.position.set(0, 2.6, -2.5);
+        ramGroup.add(bed);
+
+        // Grid / Front
+        const grill = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.5, 0.2), new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 1 }));
+        grill.position.set(0, 2, 5);
+        ramGroup.add(grill);
+
+        // Enormous Wheels
+        const wheelGeo = new THREE.CylinderGeometry(1.2, 1.2, 1, 16);
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a });
+        const wheelPos = [
+            [2.4, 1.2, 3], [-2.4, 1.2, 3],
+            [2.4, 1.2, -3.5], [-2.4, 1.2, -3.5]
+        ];
+        wheelPos.forEach(pos => {
+            const w = new THREE.Mesh(wheelGeo, wheelMat);
+            w.rotation.z = Math.PI / 2;
+            w.position.set(...pos);
+            ramGroup.add(w);
+        });
+
+        // Headlights
+        const eyeGeo = new THREE.PlaneGeometry(1.2, 0.8);
+        const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const l1 = new THREE.Mesh(eyeGeo, eyeMat);
+        l1.position.set(1.8, 2.2, 5.01);
+        ramGroup.add(l1);
+        const l2 = l1.clone();
+        l2.position.set(-1.8, 2.2, 5.01);
+        ramGroup.add(l2);
+
+        return ramGroup;
+    },
+
 
     createPlayerCar() {
-        // Get selected skin color from economy
+        // Get selected skin color and ID from economy
+        const selectedId = typeof economy !== 'undefined' ? economy.selectedSkin : 'default';
         const skinColor = typeof economy !== 'undefined' ? economy.getSelectedSkinColor() : 0x00f2ff;
-        const carGroup = this.createFiatUno(skinColor);
+
+        let carGroup;
+        if (selectedId === 'dogeram') {
+            carGroup = this.createDogeRam(skinColor);
+        } else {
+            carGroup = this.createFiatUno(skinColor);
+        }
 
         // Glowing Nitro Exhaust (Added to the Uno group)
         const nitroGeo = new THREE.SphereGeometry(0.5, 8, 8);

@@ -25,7 +25,8 @@ const economy = {
         { id: 'gold', name: 'Uno de Ouro', color: 0xffd700, cost: 500 },
         { id: 'neon', name: 'Neon Pink', color: 0xff00ff, cost: 250 },
         { id: 'taxi', name: 'Táxi Perigoso', color: 0xffcc00, cost: 150 },
-        { id: 'police', name: 'Rocam Fake', color: 0x003366, cost: 200 }
+        { id: 'police', name: 'Rocam Fake', color: 0x003366, cost: 200 },
+        { id: 'dogeram', name: 'Doge Ram (Especial)', color: 0xffaa00, cost: 700 }
     ],
     unlockedSkins: JSON.parse(localStorage.getItem('turbo_skins_unlocked')) || ['default'],
     selectedSkin: localStorage.getItem('turbo_selected_skin') || 'default',
