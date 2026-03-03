@@ -330,7 +330,9 @@ const game = {
 
 
     createPlayerCar() {
-        const carGroup = this.createFiatUno(0x00f2ff);
+        // Get selected skin color from economy
+        const skinColor = typeof economy !== 'undefined' ? economy.getSelectedSkinColor() : 0x00f2ff;
+        const carGroup = this.createFiatUno(skinColor);
 
         // Glowing Nitro Exhaust (Added to the Uno group)
         const nitroGeo = new THREE.SphereGeometry(0.5, 8, 8);
@@ -398,17 +400,24 @@ const game = {
         this.currentState = 'race';
         this.isRunning = true;
 
+        // Re-create player car with current skin
+        if (this.playerCar) {
+            this.scene.remove(this.playerCar.mesh);
+        }
+        this.createPlayerCar();
+
         // Load Economy Effects
         this.playerCar.effects = economy.getCombinedEffects();
 
         // UI transitions
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('shop-screen').classList.add('hidden');
+        document.getElementById('skin-screen').classList.add('hidden');
         document.getElementById('results-screen').classList.add('hidden');
         document.getElementById('hud').classList.remove('hidden');
         document.getElementById('hud-speed').classList.remove('hidden');
 
-        // Reset Car
+        // Reset Car State
         this.playerCar.speed = 0;
         this.playerCar.zPos = 0;
         this.playerCar.xPos = 0;
@@ -613,6 +622,17 @@ const game = {
         document.getElementById('main-menu').classList.remove('hidden');
     },
 
+    showSkins() {
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('skin-screen').classList.remove('hidden');
+        economy.updateSkinsUI();
+    },
+
+    hideSkins() {
+        document.getElementById('skin-screen').classList.add('hidden');
+        document.getElementById('main-menu').classList.remove('hidden');
+    },
+
     goToMenu() {
         this.lap = 1;
         // Switch track for next round
@@ -620,6 +640,7 @@ const game = {
         this.createTrack(); // Rebuild track for new environment
 
         document.getElementById('results-screen').classList.add('hidden');
+        document.getElementById('skin-screen').classList.add('hidden');
         document.getElementById('main-menu').classList.remove('hidden');
         economy.updateUI();
     }

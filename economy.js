@@ -19,12 +19,23 @@ const economy = {
         { id: 'overheat', name: 'Overheat', type: 'debuff', effect: { maxSpeed: 0.8 }, color: '#ff0055', desc: 'Motor superaquece, limita velocidade.' },
         { id: 'loose_steering', name: 'Loose Steering', type: 'debuff', effect: { handling: 0.6 }, color: '#ffcc00', desc: 'Direção menos responsiva.' }
     ],
+    availableSkins: [
+        { id: 'default', name: 'Branco Firma', color: 0xeeeeee, cost: 0 },
+        { id: 'carbon', name: 'Carbono Tech', color: 0x111111, cost: 100 },
+        { id: 'gold', name: 'Uno de Ouro', color: 0xffd700, cost: 500 },
+        { id: 'neon', name: 'Neon Pink', color: 0xff00ff, cost: 250 },
+        { id: 'taxi', name: 'Táxi Perigoso', color: 0xffcc00, cost: 150 },
+        { id: 'police', name: 'Rocam Fake', color: 0x003366, cost: 200 }
+    ],
+    unlockedSkins: JSON.parse(localStorage.getItem('turbo_skins_unlocked')) || ['default'],
+    selectedSkin: localStorage.getItem('turbo_selected_skin') || 'default',
 
     currentUpgradeCost: 0,
 
     init() {
         this.generateRandomCost();
         this.updateUI();
+        this.updateSkinsUI();
     },
 
     generateRandomCost() {
@@ -36,12 +47,15 @@ const economy = {
     save() {
         localStorage.setItem('turbo_coins', this.coins);
         localStorage.setItem('turbo_inventory', JSON.stringify(this.inventory));
+        localStorage.setItem('turbo_skins_unlocked', JSON.stringify(this.unlockedSkins));
+        localStorage.setItem('turbo_selected_skin', this.selectedSkin);
         this.updateUI();
+        this.updateSkinsUI();
     },
 
     updateUI() {
         // Update coin displays
-        ['menu-coins', 'shop-coins'].forEach(id => {
+        ['menu-coins', 'shop-coins', 'skin-coins'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.innerText = this.coins;
         });
@@ -63,6 +77,58 @@ const economy = {
                 invList.appendChild(badge);
             });
         }
+    },
+
+    updateSkinsUI() {
+        const grid = document.getElementById('skins-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        this.availableSkins.forEach(skin => {
+            const isUnlocked = this.unlockedSkins.includes(skin.id);
+            const isSelected = this.selectedSkin === skin.id;
+
+            const card = document.createElement('div');
+            card.className = 'panel';
+            card.style.border = isSelected ? '2px solid #ffcc00' : '1px solid rgba(255,255,255,0.1)';
+            card.style.textAlign = 'center';
+            card.style.padding = '15px';
+            card.style.background = isSelected ? 'rgba(255, 204, 0, 0.1)' : 'rgba(255,255,255,0.05)';
+
+            card.innerHTML = `
+                <div style="width: 50px; height: 30px; background: #${skin.color.toString(16).padStart(6, '0')}; margin: 0 auto 10px; border-radius: 4px; border: 1px solid white;"></div>
+                <div style="font-weight: bold;">${skin.name}</div>
+                <div style="font-size: 0.8rem; margin: 10px 0;">${isUnlocked ? 'DESBLOQUEADO' : `PREÇO: ${skin.cost} 🪙`}</div>
+                <button class="btn" style="padding: 5px 15px; font-size: 0.8rem; width: 100%;" 
+                        onclick="economy.${isUnlocked ? 'selectSkin' : 'buySkin'}('${skin.id}')">
+                    ${isSelected ? 'SELECIONADO' : (isUnlocked ? 'USAR' : 'COMPRAR')}
+                </button>
+            `;
+            grid.appendChild(card);
+        });
+    },
+
+    buySkin(skinId) {
+        const skin = this.availableSkins.find(s => s.id === skinId);
+        if (this.coins < skin.cost) {
+            alert('Moedas insuficientes!');
+            return;
+        }
+        this.coins -= skin.cost;
+        this.unlockedSkins.push(skinId);
+        this.selectedSkin = skinId;
+        this.save();
+        alert(`Skin ${skin.name} desbloqueada!`);
+    },
+
+    selectSkin(skinId) {
+        this.selectedSkin = skinId;
+        this.save();
+    },
+
+    getSelectedSkinColor() {
+        const skin = this.availableSkins.find(s => s.id === this.selectedSkin);
+        return skin ? skin.color : 0xeeeeee;
     },
 
     buyRandomUpgrade() {
