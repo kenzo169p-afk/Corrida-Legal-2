@@ -650,10 +650,13 @@ const game = {
             if (opp.zPos < this.playerCar.zPos) finalPos++;
         });
 
-        const reward = Math.max(0, 1000 - (finalPos - 1) * 200);
-        economy.addCoins(reward);
+        const positionReward = Math.max(0, 1000 - (finalPos - 1) * 200);
+        const roundBonus = 200; // Bônus obrigatório por rodada
+        const totalReward = positionReward + roundBonus;
 
-        this.showLeaderboard(finalPos, reward);
+        economy.addCoins(totalReward);
+
+        this.showLeaderboard(finalPos, totalReward);
     },
 
     showLeaderboard(playerPos, reward) {
