@@ -384,6 +384,73 @@ const game = {
         return ramGroup;
     },
 
+    createFusca(color) {
+        console.log("Creating Fusca with color:", color);
+        const fuscaGroup = new THREE.Group();
+
+        // Main Rounded Body
+        const bodyGeo = new THREE.SphereGeometry(2.5, 32, 32);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.scale.set(0.9, 0.6, 1.3); // Base body
+        body.position.y = 1.6;
+        fuscaGroup.add(body);
+
+        // Cabin
+        const cabinGeo = new THREE.SphereGeometry(2, 32, 32);
+        const cabin = new THREE.Mesh(cabinGeo, bodyMat);
+        cabin.scale.set(0.8, 0.8, 0.8);
+        cabin.position.set(0, 2.5, -0.4);
+        fuscaGroup.add(cabin);
+
+        // Fenders (Paralamas) - Very prominent on Fusca
+        const fenderGeo = new THREE.SphereGeometry(1.2, 16, 16);
+        const fenderPositions = [
+            [2.0, 1.2, 1.5], [-2.0, 1.2, 1.5],
+            [2.0, 1.2, -1.5], [-2.0, 1.2, -1.5]
+        ];
+        fenderPositions.forEach(pos => {
+            const fender = new THREE.Mesh(fenderGeo, bodyMat);
+            fender.scale.set(0.7, 0.8, 1.2);
+            fender.position.set(...pos);
+            fuscaGroup.add(fender);
+        });
+
+        // Wheels
+        const wheelGeo = new THREE.CylinderGeometry(0.9, 0.9, 0.7, 16);
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a });
+        const wheelPos = [
+            [2.2, 0.9, 1.5], [-2.2, 0.9, 1.5],
+            [2.2, 0.9, -1.5], [-2.2, 0.9, -1.5]
+        ];
+        wheelPos.forEach(pos => {
+            const w = new THREE.Mesh(wheelGeo, wheelMat);
+            w.rotation.z = Math.PI / 2;
+            w.position.set(...pos);
+            fuscaGroup.add(w);
+        });
+
+        // Headlights (Round, iconic)
+        const lightGeo = new THREE.CircleGeometry(0.5, 32);
+        const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const l1 = new THREE.Mesh(lightGeo, lightMat);
+        l1.position.set(1.4, 1.6, 2.8);
+        l1.rotation.y = 0;
+        fuscaGroup.add(l1);
+        const l2 = l1.clone();
+        l2.position.set(-1.4, 1.6, 2.8);
+        fuscaGroup.add(l2);
+
+        // Bumper (Front Chrome)
+        const bGeo = new THREE.BoxGeometry(4.5, 0.3, 0.3);
+        const bMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.8 });
+        const frontBumper = new THREE.Mesh(bGeo, bMat);
+        frontBumper.position.set(0, 0.8, 3.2);
+        fuscaGroup.add(frontBumper);
+
+        return fuscaGroup;
+    },
+
 
     createPlayerCar() {
         // Get selected skin color and ID from economy
@@ -393,6 +460,8 @@ const game = {
         let carGroup;
         if (selectedId === 'dogeram') {
             carGroup = this.createDogeRam(skinColor);
+        } else if (selectedId === 'fusca_azul') {
+            carGroup = this.createFusca(skinColor);
         } else {
             carGroup = this.createFiatUno(skinColor);
         }
@@ -424,7 +493,9 @@ const game = {
         const colors = [0xff3333, 0x33ff33, 0xffff33, 0xff33ff, 0xffffff];
 
         for (let i = 0; i < 5; i++) {
-            const oppGroup = this.createFiatUno(colors[i]);
+            // Randomly choose between Uno and Fusca for opponents
+            const isFusca = Math.random() > 0.7;
+            const oppGroup = isFusca ? this.createFusca(colors[i]) : this.createFiatUno(colors[i]);
 
             // Grid layout: All start at speed 0, in a 2-lane grid
             const x = (i % 2 === 0 ? -18 : 18);
