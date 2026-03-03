@@ -363,19 +363,19 @@ const game = {
         for (let i = 0; i < 5; i++) {
             const oppGroup = this.createFiatUno(colors[i]);
 
-            // Grid layout: player at 0, AI at sides and slightly behind
-            // i=0: left (+1), i=1: right (+1), i=2: left (+2), etc.
-            const x = (i % 2 === 0 ? -12 : 12);
-            const z = -20 - (Math.floor(i / 2) * 20);
+            // Grid layout: All start at speed 0, in a 2-lane grid
+            const x = (i % 2 === 0 ? -18 : 18);
+            const z = -10 - (Math.floor(i / 2) * 15); // Slightly behind player who is at 0
 
             oppGroup.position.set(x, 0, z);
             this.opponents.push({
                 mesh: oppGroup,
                 speed: 0,
-                targetSpeed: 160 + Math.random() * 40,
-                accel: 30 + Math.random() * 20,
+                targetSpeed: 160 + Math.random() * 50,
+                accel: 25 + Math.random() * 15,
                 xPos: x,
-                zPos: z
+                zPos: z,
+                lap: 1 // Start at lap 1 like player
             });
             this.scene.add(oppGroup);
         }
@@ -515,20 +515,25 @@ const game = {
         // Update AI
         this.opponents.forEach(opp => {
             // Accelerate to target speed
-            if (opp.speed < opp.targetSpeed) {
+            if (this.isRunning && opp.speed < opp.targetSpeed) {
                 opp.speed += opp.accel * delta;
             }
 
             opp.zPos -= opp.speed * 0.1;
+
+            // Bot Lap Logic
             if (Math.abs(opp.zPos) >= trackLength) {
                 opp.zPos = 0;
+                opp.lap++;
             }
+
             opp.mesh.position.z = opp.zPos;
 
             // Basic Collision Check
             const dist = this.playerCar.mesh.position.distanceTo(opp.mesh.position);
             if (dist < 6) {
                 this.playerCar.speed *= 0.8;
+                opp.speed *= 0.9;
                 console.log('COLLISION!');
             }
         });
@@ -546,10 +551,14 @@ const game = {
             }
         }
 
-        // Position Tracking (Simple distance based)
+        // Accurate Position Tracking (Laps + Progress)
+        const trackLen = 10000;
         let pos = 1;
+        const playerProgress = (this.lap - 1) * trackLen + Math.abs(this.playerCar.zPos);
+
         this.opponents.forEach(opp => {
-            if (opp.zPos < this.playerCar.zPos) pos++;
+            const oppProgress = (opp.lap - 1) * trackLen + Math.abs(opp.zPos);
+            if (oppProgress > playerProgress) pos++;
         });
         document.getElementById('hud-pos').innerText = `${pos}/6`;
     },
