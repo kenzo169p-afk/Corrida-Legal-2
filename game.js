@@ -559,6 +559,13 @@ const game = {
             this.playerCar.zPos = 0;
             this.playerCar.mesh.position.z = 0; // Snap to start
             this.lap++;
+
+            // Recompensa por volta completada
+            if (typeof economy !== 'undefined') {
+                economy.addCoins(200);
+                console.log("Lap complete! +200 coins");
+            }
+
             if (this.lap > this.totalLaps) {
                 this.finishRace();
             } else {
