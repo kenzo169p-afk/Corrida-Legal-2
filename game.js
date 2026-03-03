@@ -20,9 +20,9 @@ const game = {
     track: [],
     currentTrackIndex: 0,
     tracks: [
-        { name: 'NEON CITY', color: 0x00f2ff, envColor: 0x004444, fog: 0x000000 },
-        { name: 'CYBER DESERT', color: 0xff7700, envColor: 0x442200, fog: 0x110500 },
-        { name: 'VOID NIGHT', color: 0xff00ff, envColor: 0x440044, fog: 0x050005 }
+        { name: 'SÃO PAULO 2077', color: 0x00f2ff, envColor: 0x004444, fog: 0x000000 },
+        { name: 'CYBER NORTH', color: 0xff00ff, envColor: 0x440044, fog: 0x050005 },
+        { name: 'DESERT ROAD', color: 0xff7700, envColor: 0x442200, fog: 0x110500 }
     ],
 
 
@@ -135,46 +135,156 @@ const game = {
     createEnv(length) {
         const track = this.tracks[this.currentTrackIndex];
         this.scene.background = new THREE.Color(track.fog);
-        this.scene.fog = new THREE.FogExp2(track.fog, 0.0005);
+        this.scene.fog = new THREE.FogExp2(track.fog, 0.0008);
 
-        // Add some glowing pillars for "Neon" feel
-        for (let i = 0; i < 150; i++) {
-            const h = 5 + Math.random() * 50;
-            const geo = new THREE.BoxGeometry(5, h, 5);
+        console.log("Building environment for:", track.name);
+
+        // Cyber Skybox
+        const skyGeo = new THREE.SphereGeometry(1000, 32, 32);
+        const skyMat = new THREE.MeshBasicMaterial({
+            color: track.envColor,
+            side: THREE.BackSide,
+            transparent: true,
+            opacity: 0.3
+        });
+        const sky = new THREE.Mesh(skyGeo, skyMat);
+        sky.name = 'track_element';
+        this.scene.add(sky);
+
+        // Starry Sky
+        const starGeo = new THREE.BufferGeometry();
+        const starPos = [];
+        for (let i = 0; i < 2000; i++) {
+            starPos.push((Math.random() - 0.5) * 2000, Math.random() * 1000, -(Math.random()) * 5000);
+        }
+        starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.5 });
+        const stars = new THREE.Points(starGeo, starMat);
+        stars.name = 'track_element';
+        this.scene.add(stars);
+
+        // Futuristic Buildings - BROUGHT CLOSER
+        for (let i = 0; i < 120; i++) {
+            const w = 15 + Math.random() * 25;
+            const h = 60 + Math.random() * 200;
+            const d = 15 + Math.random() * 25;
+            const geo = new THREE.BoxGeometry(w, h, d);
+
             const mat = new THREE.MeshStandardMaterial({
-                color: i % 2 === 0 ? track.color : 0xffffff,
-                emissive: i % 2 === 0 ? track.envColor : 0x222222,
-                emissiveIntensity: 1
+                color: 0x0a0a0a,
+                roughness: 0.1,
+                metalness: 0.9,
+                emissive: i % 4 === 0 ? track.color : 0x111111,
+                emissiveIntensity: 0.4
             });
-            const pillar = new THREE.Mesh(geo, mat);
-            pillar.name = 'track_element';
-            pillar.position.set((Math.random() > 0.5 ? 1 : -1) * (40 + Math.random() * 120), h / 2, -Math.random() * length);
-            this.scene.add(pillar);
+
+            const building = new THREE.Mesh(geo, mat);
+            building.name = 'track_element';
+
+            const side = Math.random() > 0.5 ? 1 : -1;
+            const x = side * (45 + Math.random() * 150); // Closest is 45 units (Road is 30)
+            const z = -Math.random() * length;
+            building.position.set(x, h / 2 - 5, z);
+
+            // Neon strips
+            const stripGeo = new THREE.BoxGeometry(w + 0.5, 1, d + 0.5);
+            const stripMat = new THREE.MeshBasicMaterial({ color: track.color });
+            for (let j = 0; j < 3; j++) {
+                const strip = new THREE.Mesh(stripGeo, stripMat);
+                strip.position.y = (j - 1) * (h / 3);
+                building.add(strip);
+            }
+
+            this.scene.add(building);
         }
 
-        // Update HUD with track name
+        // Update HUD
         const msgEl = document.getElementById('hud-msg');
         if (msgEl) msgEl.innerText = track.name;
     },
 
+    createFiatUno(color) {
+        console.log("Creating Fiat Uno with color:", color);
+        const unoGroup = new THREE.Group();
+
+        // Main Boxy Body
+        const bodyGeo = new THREE.BoxGeometry(4.2, 2.2, 7.5);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.y = 1.1;
+        unoGroup.add(body);
+
+        // Cabin (Extremely Boxy)
+        const cabinGeo = new THREE.BoxGeometry(3.8, 1.4, 4.2);
+        const cabinMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3 });
+        const cabin = new THREE.Mesh(cabinGeo, cabinMat);
+        cabin.position.set(0, 2.4, -0.4);
+        unoGroup.add(cabin);
+
+        // Glass
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0, metalness: 1 });
+        const windshield = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.1, 0.1), glassMat);
+        windshield.position.set(0, 2.4, 1.71);
+        unoGroup.add(windshield);
+
+        // Bumper (Black Plastic)
+        const bumperMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+        const bumper = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.9, 0.6), bumperMat);
+        bumper.position.set(0, 0.7, 3.6);
+        unoGroup.add(bumper);
+
+        // Wheels
+        const wheelGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.7, 16);
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x050505 });
+        const positions = [
+            [1.9, 0.8, 2.4], [-1.9, 0.8, 2.4],
+            [1.9, 0.8, -2.4], [-1.9, 0.8, -2.4]
+        ];
+        positions.forEach(pos => {
+            const w = new THREE.Mesh(wheelGeo, wheelMat);
+            w.rotation.z = Math.PI / 2;
+            w.position.set(...pos);
+            unoGroup.add(w);
+        });
+
+        // HEADLIGHTS
+        const hLight = new THREE.Mesh(new THREE.PlaneGeometry(1, 0.6), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+        hLight.position.set(1.4, 1.3, 3.76);
+        unoGroup.add(hLight);
+        const hLight2 = hLight.clone();
+        hLight2.position.set(-1.4, 1.3, 3.76);
+        unoGroup.add(hLight2);
+
+        // Ladder (The "Firma" speed boost)
+        const ladderMat = new THREE.MeshStandardMaterial({ color: 0x888888 });
+        const rail1 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 4), ladderMat);
+        rail1.position.set(0.8, 3.2, -0.4);
+        unoGroup.add(rail1);
+        const rail2 = rail1.clone();
+        rail2.position.set(-0.8, 3.2, -0.4);
+        unoGroup.add(rail2);
+        for (let k = 0; k < 6; k++) {
+            const step = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.05, 0.1), ladderMat);
+            step.position.set(0, 3.2, -2 + k * 0.6);
+            unoGroup.add(step);
+        }
+
+        return unoGroup;
+    },
+
 
     createPlayerCar() {
-        const carGroup = new THREE.Group();
+        const carGroup = this.createFiatUno(0x00f2ff);
 
-        // Simplified Body
-        const bodyGeo = new THREE.BoxGeometry(4, 2, 8);
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x00f2ff, roughness: 0.2 });
-        const body = new THREE.Mesh(bodyGeo, bodyMat);
-        carGroup.add(body);
-
-        // Glowing Nitro Exhaust
+        // Glowing Nitro Exhaust (Added to the Uno group)
         const nitroGeo = new THREE.SphereGeometry(0.5, 8, 8);
         const nitroMat = new THREE.MeshBasicMaterial({ color: 0x00f2ff });
         const nitro = new THREE.Mesh(nitroGeo, nitroMat);
-        nitro.position.set(0, 0, -4);
+        nitro.name = "nitro_flame";
+        nitro.position.set(0, 0.8, -4);
+        nitro.visible = false;
         carGroup.add(nitro);
 
-        carGroup.position.set(0, 1, 0);
         this.playerCar = {
             mesh: carGroup,
             speed: 0,
@@ -190,13 +300,12 @@ const game = {
         this.opponents.forEach(opp => this.scene.remove(opp.mesh));
         this.opponents = [];
 
-        for (let i = 0; i < 5; i++) {
-            const oppGroup = new THREE.Group();
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xff3333 });
-            const body = new THREE.Mesh(new THREE.BoxGeometry(4, 2, 8), bodyMat);
-            oppGroup.add(body);
+        const colors = [0xff3333, 0x33ff33, 0xffff33, 0xff33ff, 0xffffff];
 
-            oppGroup.position.set((i - 2) * 10, 1, -100 - (i * 20));
+        for (let i = 0; i < 5; i++) {
+            const oppGroup = this.createFiatUno(colors[i]);
+
+            oppGroup.position.set((i - 2) * 10, 0, -100 - (i * 20));
             this.opponents.push({
                 mesh: oppGroup,
                 speed: 150 + Math.random() * 20,
@@ -277,10 +386,13 @@ const game = {
         }
 
         // Nitro Boost
+        const nitroFlame = this.playerCar.mesh.getObjectByName("nitro_flame");
         if (this.keys.space && this.playerCar.speed > 0) {
             this.playerCar.speed += (accel * 4 * effects.nitro);
-            // Visual Nitro Bar
+            if (nitroFlame) nitroFlame.visible = true;
             document.getElementById('nitro-bar').style.width = '100%';
+        } else {
+            if (nitroFlame) nitroFlame.visible = false;
         }
 
         // Clamp Speed
