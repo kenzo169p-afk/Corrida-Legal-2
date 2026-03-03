@@ -92,6 +92,27 @@ const economy = {
         console.log(`BOUGHT: ${upgrade.name}`);
     },
 
+    removeRandomUpgrade() {
+        const REMOVE_COST = 10;
+        if (this.coins < REMOVE_COST) {
+            alert('Moedas insuficientes!');
+            return;
+        }
+        if (this.inventory.length === 0) {
+            alert('Nenhum upgrade para remover!');
+            return;
+        }
+
+        this.coins -= REMOVE_COST;
+        const randomIndex = Math.floor(Math.random() * this.inventory.length);
+        const removed = this.inventory.splice(randomIndex, 1)[0];
+
+        this.save();
+        console.log(`REMOVED: ${removed.name}`);
+
+        alert(`Upgrade removido: ${removed.name}`);
+    },
+
     addCoins(amount) {
         this.coins += amount;
         this.save();
