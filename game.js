@@ -196,165 +196,111 @@ const game = {
         this.scene.background = new THREE.Color(track.fog);
         this.scene.fog = new THREE.FogExp2(track.fog, 0.0008);
 
-        console.log("Building high-fidelity environment for:", track.name);
+        console.log("Building high-performance optimized environment for:", track.name);
 
-        // Advanced Multi-Color Window Texture
-        const winCanvas = document.createElement('canvas');
-        winCanvas.width = 128;
-        winCanvas.height = 128;
-        const wCtx = winCanvas.getContext('2d');
-        wCtx.fillStyle = '#050505';
-        wCtx.fillRect(0, 0, 128, 128);
-
-        const colors = [track.color, 0x00f2ff, 0xff00ff, 0xffff00];
-        for (let i = 0; i < 8; i++) {
-            for (let j = 0; j < 16; j++) {
-                if (Math.random() > 0.3) {
-                    const c = colors[Math.floor(Math.random() * colors.length)];
-                    wCtx.globalAlpha = 0.4 + Math.random() * 0.6;
-                    wCtx.fillStyle = `#${c.toString(16).padStart(6, '0')}`;
-                    wCtx.fillRect(i * 16 + 2, j * 8 + 2, 12, 4);
-                    // Bloom-like glow around windows
-                    wCtx.globalAlpha = 0.1;
-                    wCtx.fillRect(i * 16, j * 8, 16, 8);
+        // --- OPTIMIZATION: Share Textures and Materials ---
+        if (!this.sharedAssets) {
+            const winCanvas = document.createElement('canvas');
+            winCanvas.width = 128; winCanvas.height = 128;
+            const wCtx = winCanvas.getContext('2d');
+            wCtx.fillStyle = '#050505'; wCtx.fillRect(0, 0, 128, 128);
+            const winColors = [0x00f2ff, 0xff00ff, 0xffff00, 0xffffff];
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 16; j++) {
+                    if (Math.random() > 0.3) {
+                        const c = winColors[Math.floor(Math.random() * winColors.length)];
+                        wCtx.globalAlpha = 0.5; wCtx.fillStyle = `#${c.toString(16).padStart(6, '0')}`;
+                        wCtx.fillRect(i * 16 + 2, j * 8 + 2, 12, 4);
+                    }
                 }
             }
+            const winTex = new THREE.CanvasTexture(winCanvas);
+            winTex.wrapS = winTex.wrapT = THREE.RepeatWrapping;
+
+            this.sharedAssets = {
+                winTex,
+                bodyMat: new THREE.MeshStandardMaterial({ color: 0x080808, roughness: 0.2, metalness: 0.8 }),
+                winMat: new THREE.MeshLambertMaterial({ map: winTex, emissive: 0xffffff, emissiveIntensity: 0.5, transparent: true, opacity: 0.9 })
+            };
         }
-        const winTex = new THREE.CanvasTexture(winCanvas);
-        winTex.wrapS = winTex.wrapT = THREE.RepeatWrapping;
 
-        // Cyber Skybox with Starfield
-        const skyGeo = new THREE.SphereGeometry(1500, 32, 32);
-        const skyMat = new THREE.MeshBasicMaterial({
-            color: track.envColor,
-            side: THREE.BackSide,
-            transparent: true,
-            opacity: 0.15
-        });
-        const sky = new THREE.Mesh(skyGeo, skyMat);
-        sky.name = 'track_element';
-        this.scene.add(sky);
+        // --- OPTIMIZATION: Instanced Mesh for Buildings ---
+        // Instead of 160 groups, we'll use InstancedMesh for the main bodies
+        const buildCount = 120;
+        const baseGeo = new THREE.BoxGeometry(1, 1, 1);
+        const instancedBuildings = new THREE.InstancedMesh(baseGeo, this.sharedAssets.bodyMat, buildCount);
+        instancedBuildings.name = 'track_element';
+        const dummy = new THREE.Object3D();
 
-        // Futuristic Buildings
-        for (let i = 0; i < 160; i++) {
-            const type = Math.floor(Math.random() * 4);
-            const w = 20 + Math.random() * 30;
-            const h = 100 + Math.random() * 300;
-            const d = 20 + Math.random() * 30;
+        const trackColors = [track.color, 0x00f2ff, 0xff00ff, 0xffff00];
 
-            const bGroup = new THREE.Group();
-            bGroup.name = 'track_element';
-
-            const bodyMat = new THREE.MeshStandardMaterial({
-                color: 0x080808,
-                roughness: 0.1,
-                metalness: 0.9,
-            });
-
-            const winMat = new THREE.MeshLambertMaterial({
-                map: winTex,
-                emissive: 0xffffff,
-                emissiveIntensity: 0.6,
-                transparent: true,
-                opacity: 0.95
-            });
-
-            // Base Structure
-            const baseGeo = new THREE.BoxGeometry(w, h, d);
-            const building = new THREE.Mesh(baseGeo, bodyMat);
-            bGroup.add(building);
-
-            // Windows on all sides
-            const winBox = new THREE.Mesh(new THREE.BoxGeometry(w + 0.5, h * 0.9, d + 0.5), winMat);
-            winMat.map.repeat.set(w / 10, h / 20);
-            bGroup.add(winBox);
-
-            // Architectural Details
-            if (type === 1) { // Massive Tower with Top Disk
-                const diskGeo = new THREE.CylinderGeometry(w, w, 5, 16);
-                const disk = new THREE.Mesh(diskGeo, bodyMat);
-                disk.position.y = h / 2;
-                bGroup.add(disk);
-                const neonRing = new THREE.Mesh(new THREE.TorusGeometry(w + 1, 0.5, 8, 24), new THREE.MeshBasicMaterial({ color: track.color }));
-                neonRing.rotation.x = Math.PI / 2;
-                neonRing.position.y = h / 2;
-                bGroup.add(neonRing);
-            } else if (type === 2) { // Stepped Architecture (Ziggurat style)
-                const stepGeo = new THREE.BoxGeometry(w * 0.7, h / 3, d * 0.7);
-                const step = new THREE.Mesh(stepGeo, bodyMat);
-                step.position.y = h / 2 + h / 6;
-                bGroup.add(step);
-            }
-
-            // High Intensity Neon Vertical
-            const intensityNeon = new THREE.Mesh(new THREE.BoxGeometry(2, h, 2), new THREE.MeshBasicMaterial({ color: colors[i % colors.length] }));
-            intensityNeon.position.x = w / 2;
-            intensityNeon.position.z = d / 2;
-            bGroup.add(intensityNeon);
+        for (let i = 0; i < buildCount; i++) {
+            const w = 20 + Math.random() * 20;
+            const h = 80 + Math.random() * 200;
+            const d = 20 + Math.random() * 20;
 
             const side = Math.random() > 0.5 ? 1 : -1;
-            const x = side * (75 + Math.random() * 400);
+            const x = side * (70 + Math.random() * 300);
             const z = -Math.random() * length;
-            bGroup.position.set(x, h / 2 - 5, z);
-            this.scene.add(bGroup);
 
-            // Animated Billboards
-            if (i % 10 === 0) {
-                const adGroup = new THREE.Group();
-                adGroup.name = 'hologram';
-                const adColor = colors[Math.floor(Math.random() * colors.length)];
-                const adGeo = new THREE.PlaneGeometry(50, 30);
-                const adMat = new THREE.MeshBasicMaterial({ color: adColor, transparent: true, opacity: 0.4, side: THREE.DoubleSide });
-                adGroup.add(new THREE.Mesh(adGeo, adMat));
+            dummy.position.set(x, h / 2 - 5, z);
+            dummy.scale.set(w, h, d);
+            dummy.updateMatrix();
+            instancedBuildings.setMatrixAt(i, dummy.matrix);
 
-                const frame = new THREE.Mesh(new THREE.BoxGeometry(52, 32, 1), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1 }));
-                adGroup.add(frame);
+            // Add ONE neon strip per building instead of multiple (Better perf)
+            const neonMat = new THREE.MeshBasicMaterial({ color: trackColors[i % 4] });
+            const neon = new THREE.Mesh(new THREE.BoxGeometry(1, h, 1), neonMat);
+            neon.position.set(x + (w / 2 * side), h / 2 - 5, z);
+            neon.name = 'track_element';
+            this.scene.add(neon);
 
-                adGroup.position.set(x - side * 50, h * 0.7, z + (Math.random() - 0.5) * 50);
-                adGroup.rotation.y = Math.PI / 2 + (Math.random() - 0.5);
-                this.scene.add(adGroup);
+            // Limited Holograms (Reduced count for perf)
+            if (i % 15 === 0) {
+                const holoGeo = new THREE.PlaneGeometry(40, 30);
+                const holoMat = new THREE.MeshBasicMaterial({ color: trackColors[Math.floor(Math.random() * 4)], transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+                const holo = new THREE.Mesh(holoGeo, holoMat);
+                holo.position.set(x - side * 40, h * 0.6, z);
+                holo.rotation.y = Math.PI / 2;
+                holo.name = 'hologram';
+                this.scene.add(holo);
             }
         }
+        this.scene.add(instancedBuildings);
 
 
-        // Street Lights along the track
-        for (let z = 0; z < length; z += 150) {
-            const postGeo = new THREE.CylinderGeometry(0.5, 0.5, 25);
-            const postMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
 
+        // Street Lights along the track (Optimized: Using fewer PointLights)
+        for (let z = 0; z < length; z += 300) { // Increased spacing
             [-45, 45].forEach(x => {
-                const post = new THREE.Mesh(postGeo, postMat);
+                const post = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 25), new THREE.MeshStandardMaterial({ color: 0x222222 }));
                 post.position.set(x, 12.5, -z);
                 post.name = 'track_element';
                 this.scene.add(post);
 
-                const lampGeo = new THREE.BoxGeometry(4, 1, 2);
-                const lampMat = new THREE.MeshBasicMaterial({ color: track.color });
-                const lamp = new THREE.Mesh(lampGeo, lampMat);
+                const lamp = new THREE.Mesh(new THREE.BoxGeometry(4, 1, 2), new THREE.MeshBasicMaterial({ color: track.color }));
                 lamp.position.set(x > 0 ? -2 : 2, 12, 0);
                 post.add(lamp);
 
-                const glow = new THREE.PointLight(track.color, 50, 40);
-                glow.position.set(x > 0 ? -2 : 2, 11, 0);
-                post.add(glow);
+                // PointLights are expensive, so we only use them sparingly
+                if (z % 600 === 0) {
+                    const glow = new THREE.PointLight(track.color, 30, 60);
+                    glow.position.set(x > 0 ? -2 : 2, 11, 0);
+                    post.add(glow);
+                }
             });
         }
 
-        // Flying Traffic (Distant glowing lights)
-        for (let i = 0; i < 40; i++) {
-            const trafficGeo = new THREE.SphereGeometry(1, 8, 8);
-            const trafficMat = new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0xffffff : track.color });
-            const light = new THREE.Mesh(trafficGeo, trafficMat);
-
+        // Flying Traffic (Very simple dots for perf)
+        for (let i = 0; i < 20; i++) {
+            const traffic = new THREE.Mesh(new THREE.SphereGeometry(1, 4, 4), new THREE.MeshBasicMaterial({ color: track.color }));
             const side = Math.random() > 0.5 ? 1 : -1;
-            const x = side * (100 + Math.random() * 300);
-            const y = 50 + Math.random() * 150;
+            const x = side * (100 + Math.random() * 200);
             const z = -Math.random() * length;
-
-            light.position.set(x, y, z);
-            light.name = 'track_element';
-            light.userData = { speed: 50 + Math.random() * 100, zStart: z };
-            this.scene.add(light);
+            traffic.position.set(x, 50 + Math.random() * 100, z);
+            traffic.name = 'track_element';
+            traffic.userData = { speed: 100, zStart: z };
+            this.scene.add(traffic);
         }
 
         // Update HUD (Existing)
