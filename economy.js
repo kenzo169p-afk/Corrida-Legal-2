@@ -195,6 +195,28 @@ const economy = {
         alert(`Upgrade removido: ${removed.name}`);
     },
 
+    removeAllDebuffs() {
+        const COST = 500;
+        const debuffs = this.inventory.filter(item => item.type === 'debuff');
+
+        if (debuffs.length === 0) {
+            alert('Você não tem upgrades ruins (debuffs) para remover!');
+            return;
+        }
+
+        if (this.coins < COST) {
+            alert(`Moedas insuficientes! Você precisa de ${COST} 🪙.`);
+            return;
+        }
+
+        if (confirm(`Deseja remover TODOS os ${debuffs.length} debuffs por ${COST} 🪙?`)) {
+            this.coins -= COST;
+            this.inventory = this.inventory.filter(item => item.type !== 'debuff');
+            this.save();
+            alert('Todos os debuffs foram removidos!');
+        }
+    },
+
     addCoins(amount) {
         this.coins += amount;
         this.save();
