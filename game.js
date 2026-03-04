@@ -947,14 +947,19 @@ const game = {
         if (this.playerCar.speed > 5) {
             const handling = effects.handling;
             const driftPenalty = this.playerCar.speed > 200 ? (1.0 / (effects.stability || 1.0)) : 1.0;
-            if (this.keys.a) this.playerCar.xPos -= 60 * handling * driftPenalty * delta;
-            if (this.keys.d) this.playerCar.xPos += 60 * handling * driftPenalty * delta;
-        }
 
-        // Apply Drift (Loose traction if turning hard at speed)
-        if (this.playerCar.speed > 100 && (this.keys.a || this.keys.d)) {
-            const gripFactor = 1.0 / (effects.grip || 1.0);
-            this.playerCar.xPos += (this.keys.a ? -60 : 60) * this.DRIFT_INTENSITY * (effects.drift || 1) * gripFactor * delta;
+            // Lateral Speed scales with forward speed for responsive arcade feel
+            const lateralSpeed = this.playerCar.speed * 0.45;
+
+            if (this.keys.a) this.playerCar.xPos -= lateralSpeed * handling * driftPenalty * delta;
+            if (this.keys.d) this.playerCar.xPos += lateralSpeed * handling * driftPenalty * delta;
+
+            // Apply Drift Logic
+            if (this.playerCar.speed > 100 && (this.keys.a || this.keys.d)) {
+                const gripFactor = 1.0 / (effects.grip || 1.0);
+                const driftWeight = lateralSpeed * this.DRIFT_INTENSITY * (effects.drift || 1) * gripFactor;
+                this.playerCar.xPos += (this.keys.a ? -driftWeight : driftWeight) * delta;
+            }
         }
 
         // Road Boundaries
