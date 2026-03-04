@@ -657,6 +657,109 @@ const game = {
         return mcqGroup;
     },
 
+    createFerrariF40(color) {
+        console.log("Creating Ferrari F40...");
+        const f40Group = new THREE.Group();
+
+        const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.1, metalness: 0.4 });
+        const blackMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 1, roughness: 0 });
+
+        // 1. Low Body (Base)
+        const baseGeo = new THREE.BoxGeometry(4.5, 0.8, 10);
+        const base = new THREE.Mesh(baseGeo, bodyMat);
+        base.position.y = 0.4;
+        f40Group.add(base);
+
+        // 2. Tapered Front (Cunha)
+        const wedgeGeo = new THREE.BoxGeometry(4.5, 0.5, 4);
+        const wedge = new THREE.Mesh(wedgeGeo, bodyMat);
+        wedge.rotation.x = -0.15;
+        wedge.position.set(0, 0.8, 3);
+        f40Group.add(wedge);
+
+        // 3. Cabin (Squareish)
+        const cabinGeo = new THREE.BoxGeometry(4, 1.2, 4);
+        const cabin = new THREE.Mesh(cabinGeo, bodyMat);
+        cabin.position.set(0, 1.4, -0.5);
+        f40Group.add(cabin);
+
+        // Windshield
+        const windshield = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 1.5), glassMat);
+        windshield.rotation.x = -Math.PI / 3.5;
+        windshield.position.set(0, 1.4, 1.5);
+        f40Group.add(windshield);
+
+        // Rear window (Lexan slats)
+        const rearWin = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.1, 3), glassMat);
+        rearWin.rotation.x = 0.2;
+        rearWin.position.set(0, 1.3, -2.5);
+        f40Group.add(rearWin);
+
+        // 4. ICONIC REAR WING
+        const wingPillarL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.5, 1.2), bodyMat);
+        wingPillarL.position.set(2.1, 1.2, -4.4);
+        f40Group.add(wingPillarL);
+        const wingPillarR = wingPillarL.clone();
+        wingPillarR.position.set(-2.1, 1.2, -4.4);
+        f40Group.add(wingPillarR);
+        const wingMain = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.2, 1.4), bodyMat);
+        wingMain.position.set(0, 1.95, -4.4);
+        f40Group.add(wingMain);
+
+        // 5. Triple Exhaust (Unique F40 feature)
+        const exhaustMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 1, roughness: 0.2 });
+        const pipeGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.5, 8);
+        for (let j = -1; j <= 1; j++) {
+            const pipe = new THREE.Mesh(pipeGeo, exhaustMat);
+            pipe.rotation.x = Math.PI / 2;
+            pipe.position.set(j * 0.4, 0.4, -5.05);
+            f40Group.add(pipe);
+        }
+
+        // 6. Wheels
+        const wheelGeo = new THREE.CylinderGeometry(0.85, 0.85, 0.9, 16);
+        const wheelPos = [
+            [1.95, 0.85, 3.2], [-1.95, 0.85, 3.2], // Front
+            [2.05, 0.95, -3], [-2.05, 0.95, -3]  // Rear (Slightly larger/wider)
+        ];
+        wheelPos.forEach((pos, i) => {
+            const w = new THREE.Mesh(wheelGeo, blackMat);
+            if (i >= 2) w.scale.set(1.1, 1, 1.1);
+            w.rotation.z = Math.PI / 2;
+            w.position.set(...pos);
+            f40Group.add(w);
+
+            // Rim (Star pattern simple)
+            const rim = new THREE.Mesh(new THREE.CircleGeometry(0.6, 5), new THREE.MeshStandardMaterial({ color: 0xdddddd }));
+            rim.position.set(pos[0] * 1.05, pos[1], pos[2]);
+            rim.rotation.y = pos[0] > 0 ? Math.PI / 2 : -Math.PI / 2;
+            f40Group.add(rim);
+        });
+
+        // 7. POP-UP HEADLIGHTS (Closed)
+        const lightGeo = new THREE.BoxGeometry(1.2, 0.1, 1);
+        const l1 = new THREE.Mesh(lightGeo, new THREE.MeshBasicMaterial({ color: color }));
+        l1.position.set(1.4, 0.95, 4.3);
+        f40Group.add(l1);
+        const l2 = l1.clone();
+        l2.position.set(-1.4, 0.95, 4.3);
+        f40Group.add(l2);
+
+        // Rear Lights (Classic round)
+        const rLightGeo = new THREE.CircleGeometry(0.3, 16);
+        const rLightMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const rl1 = new THREE.Mesh(rLightGeo, rLightMat);
+        rl1.position.set(1.6, 0.6, -5.01);
+        rl1.rotation.y = Math.PI;
+        f40Group.add(rl1);
+        const rl2 = rl1.clone();
+        rl2.position.set(-1.6, 0.6, -5.01);
+        f40Group.add(rl2);
+
+        return f40Group;
+    },
+
     createPlayerCar() {
         // Get selected skin color and ID from economy
         const selectedId = typeof economy !== 'undefined' ? economy.selectedSkin : 'default';
@@ -673,11 +776,13 @@ const game = {
             carGroup = this.createCube(skinColor);
         } else if (selectedId === 'mcqueen') {
             carGroup = this.createMcQueen();
+        } else if (selectedId === 'ferrari_f40') {
+            carGroup = this.createFerrariF40(skinColor);
         } else {
             carGroup = this.createFiatUno(skinColor);
         }
 
-        // Glowing Nitro Exhaust (Added to the Uno group)
+        // Glowing Nitro Exhaust (Added to the car group)
         const nitroGeo = new THREE.SphereGeometry(0.5, 8, 8);
         const nitroMat = new THREE.MeshBasicMaterial({ color: 0x00f2ff });
         const nitro = new THREE.Mesh(nitroGeo, nitroMat);
@@ -704,7 +809,11 @@ const game = {
         const colors = [0xff3333, 0x33ff33, 0xffff33, 0xff33ff, 0xffffff];
 
         for (let i = 0; i < 5; i++) {
-            const oppGroup = this.createFiatUno(colors[i]);
+            // Variety in opponent skins
+            let oppGroup;
+            if (i === 0) oppGroup = this.createBMW(0xdddddd);
+            else if (i === 1) oppGroup = this.createFerrariF40(0xff3333);
+            else oppGroup = this.createFiatUno(colors[i]);
 
             // Grid layout: All start at speed 0, in a 2-lane grid
             const x = (i % 2 === 0 ? -18 : 18);

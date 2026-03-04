@@ -27,6 +27,7 @@ const economy = {
         { id: 'taxi', name: 'Táxi Perigoso', color: 0xffcc00, cost: 150 },
         { id: 'police', name: 'Rocam Fake', color: 0x003366, cost: 200 },
         { id: 'dogeram', name: 'Doge Ram (Especial)', color: 0xffaa00, cost: 700 },
+        { id: 'ferrari_f40', name: 'Ferrari F40', color: 0xff2800, cost: 1200 },
         { id: 'bmw320i', name: 'BMW 320i M-Sport', color: 0x3366ff, cost: 2000 },
         { id: 'batmobile', name: 'Batmovel (Legendário)', color: 0x111111, cost: 10000 },
         { id: 'mcqueen', name: 'Relâmpago Marquinhos', color: 0xff0000, cost: 24000 },
