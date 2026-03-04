@@ -137,7 +137,7 @@ const economy = {
 
     getSelectedSkinColor() {
         const skin = this.availableSkins.find(s => s.id === this.selectedSkin);
-        return skin ? skin.color : 0xeeeeee;
+        return (skin && skin.color !== undefined) ? skin.color : 0xeeeeee;
     },
 
     buyRandomUpgrade() {
@@ -225,6 +225,9 @@ const economy = {
         return base;
     }
 };
+
+// Expose globally
+window.economy = economy;
 
 // Initialize economy on load
 window.addEventListener('DOMContentLoaded', () => economy.init());

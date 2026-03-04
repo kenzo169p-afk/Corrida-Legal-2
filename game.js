@@ -606,7 +606,7 @@ const game = {
             xPos: 0,
             zPos: 0,
             angle: 0,
-            effects: { nitro: 1, accel: 1, grip: 1, maxSpeed: 1, handling: 1 }
+            effects: { nitro: 1, accel: 1, grip: 1, maxSpeed: 1, handling: 1, stability: 1, brake: 1, drift: 1 }
         };
         this.scene.add(carGroup);
     },
@@ -716,7 +716,7 @@ const game = {
         if (this.keys.w) {
             this.playerCar.speed += accel * delta;
         } else if (this.keys.s) {
-            this.playerCar.speed -= this.DECEL * 2 * delta;
+            this.playerCar.speed -= this.DECEL * 2 * (effects.brake || 1.0) * delta;
         } else {
             this.playerCar.speed -= this.DECEL * delta;
         }
@@ -740,23 +740,25 @@ const game = {
         // Steering
         if (this.playerCar.speed > 5) {
             const handling = effects.handling;
-            if (this.keys.a) this.playerCar.xPos -= 1 * handling;
-            if (this.keys.d) this.playerCar.xPos += 1 * handling;
+            const driftPenalty = this.playerCar.speed > 200 ? (1.0 / (effects.stability || 1.0)) : 1.0;
+            if (this.keys.a) this.playerCar.xPos -= 60 * handling * driftPenalty * delta;
+            if (this.keys.d) this.playerCar.xPos += 60 * handling * driftPenalty * delta;
         }
 
         // Apply Drift (Loose traction if turning hard at speed)
         if (this.playerCar.speed > 100 && (this.keys.a || this.keys.d)) {
-            this.playerCar.xPos += (this.keys.a ? -1 : 1) * this.DRIFT_INTENSITY * (effects.drift || 1);
+            const gripFactor = 1.0 / (effects.grip || 1.0);
+            this.playerCar.xPos += (this.keys.a ? -60 : 60) * this.DRIFT_INTENSITY * (effects.drift || 1) * gripFactor * delta;
         }
 
         // Road Boundaries
         this.playerCar.xPos = Math.min(Math.max(this.playerCar.xPos, -28), 28);
 
         // Continuous Track
-        this.playerCar.zPos -= this.playerCar.speed * 0.1;
+        const trackLength = 10000;
+        this.playerCar.zPos -= this.playerCar.speed * delta;
 
         // Lap Logic (Modulo track length)
-        const trackLength = 10000;
         if (Math.abs(this.playerCar.zPos) >= trackLength) {
             this.playerCar.zPos = 0;
             this.playerCar.mesh.position.z = 0; // Snap to start
@@ -802,7 +804,7 @@ const game = {
                 opp.speed += opp.accel * delta;
             }
 
-            opp.zPos -= opp.speed * 0.1;
+            opp.zPos -= opp.speed * delta;
 
             // Bot Lap Logic
             if (Math.abs(opp.zPos) >= trackLength) {
