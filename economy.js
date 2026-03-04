@@ -34,32 +34,12 @@ const economy = {
     unlockedSkins: JSON.parse(localStorage.getItem('turbo_skins_unlocked')) || ['default'],
     selectedSkin: localStorage.getItem('turbo_selected_skin') || 'default',
 
-    availableCharacters: [
-        { id: 'spfc_m', name: 'São Paulo (M)', color: 0xff0000, cost: 7000 },
-        { id: 'spfc_f', name: 'São Paulo (F)', color: 0xff0000, cost: 7000 },
-        { id: 'cor_m', name: 'Corinthians (M)', color: 0x111111, cost: 7000 },
-        { id: 'cor_f', name: 'Corinthians (F)', color: 0x111111, cost: 7000 },
-        { id: 'vas_m', name: 'Vasco (M)', color: 0x222222, cost: 7000 },
-        { id: 'vas_f', name: 'Vasco (F)', color: 0x222222, cost: 7000 },
-        { id: 'fla_m', name: 'Flamengo (M)', color: 0xff3300, cost: 7000 },
-        { id: 'fla_f', name: 'Flamengo (F)', color: 0xff3300, cost: 7000 },
-        { id: 'pal_m', name: 'Palmeiras (M)', color: 0x008000, cost: 7000 },
-        { id: 'pal_f', name: 'Palmeiras (F)', color: 0x008000, cost: 7000 },
-        { id: 'pon_m', name: 'Ponte Preta (M)', color: 0x333333, cost: 7000 },
-        { id: 'pon_f', name: 'Ponte Preta (F)', color: 0x333333, cost: 7000 },
-        { id: 'ibi_m', name: 'Íbis (M)', color: 0x990000, cost: 7000 },
-        { id: 'ibi_f', name: 'Íbis (F)', color: 0x990000, cost: 7000 }
-    ],
-    unlockedCharacters: JSON.parse(localStorage.getItem('turbo_chars_unlocked')) || ['spfc_m'],
-    selectedCharacter: localStorage.getItem('turbo_selected_char') || 'spfc_m',
-
     currentUpgradeCost: 0,
 
     init() {
         this.generateRandomCost();
         this.updateUI();
         this.updateSkinsUI();
-        this.updateCharsUI();
     },
 
     generateRandomCost() {
@@ -73,16 +53,13 @@ const economy = {
         localStorage.setItem('turbo_inventory', JSON.stringify(this.inventory));
         localStorage.setItem('turbo_skins_unlocked', JSON.stringify(this.unlockedSkins));
         localStorage.setItem('turbo_selected_skin', this.selectedSkin);
-        localStorage.setItem('turbo_chars_unlocked', JSON.stringify(this.unlockedCharacters));
-        localStorage.setItem('turbo_selected_char', this.selectedCharacter);
         this.updateUI();
         this.updateSkinsUI();
-        this.updateCharsUI();
     },
 
     updateUI() {
         // Update coin displays
-        ['menu-coins', 'shop-coins', 'skin-coins', 'char-coins'].forEach(id => {
+        ['menu-coins', 'shop-coins', 'skin-coins'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.innerText = this.coins;
         });
@@ -158,55 +135,9 @@ const economy = {
         this.save();
     },
 
-    updateCharsUI() {
-        const grid = document.getElementById('chars-grid');
-        if (!grid) return;
-        grid.innerHTML = '';
-
-        this.availableCharacters.forEach(char => {
-            const isUnlocked = this.unlockedCharacters.includes(char.id);
-            const isSelected = this.selectedCharacter === char.id;
-
-            const card = document.createElement('div');
-            card.className = 'panel';
-            card.style.border = isSelected ? '2px solid #00ff88' : '1px solid rgba(255,255,255,0.1)';
-            card.style.textAlign = 'center';
-            card.style.padding = '15px';
-
-            card.innerHTML = `
-                <div style="width: 30px; height: 30px; background: #${char.color.toString(16).padStart(6, '0')}; margin: 0 auto 10px; border-radius: 50%;"></div>
-                <div style="font-weight: bold;">${char.name}</div>
-                <div style="font-size: 0.8rem; margin: 10px 0;">${isUnlocked ? 'DESBLOQUEADO' : `7.000 🪙`}</div>
-                <button class="btn" style="padding: 5px 15px; font-size: 0.8rem; width: 100%; border-color: ${isSelected ? '#00ff88' : 'white'}" 
-                        onclick="economy.${isUnlocked ? 'selectChar' : 'buyChar'}('${char.id}')">
-                    ${isSelected ? 'USANDO' : (isUnlocked ? 'ESCOLHER' : 'COMPRAR')}
-                </button>
-            `;
-            grid.appendChild(card);
-        });
-    },
-
-    buyChar(charId) {
-        const char = this.availableCharacters.find(c => c.id === charId);
-        if (this.coins < char.cost) {
-            alert('Você precisa de 7.000 moedas para este personagem!');
-            return;
-        }
-        this.coins -= char.cost;
-        this.unlockedCharacters.push(charId);
-        this.selectedCharacter = charId;
-        this.save();
-        alert(`O Manto do ${char.name} agora é seu!`);
-    },
-
-    selectChar(charId) {
-        this.selectedCharacter = charId;
-        this.save();
-    },
-
-    getSelectedCharColor() {
-        const char = this.availableCharacters.find(c => c.id === this.selectedCharacter);
-        return char ? char.color : 0xffffff;
+    getSelectedSkinColor() {
+        const skin = this.availableSkins.find(s => s.id === this.selectedSkin);
+        return skin ? skin.color : 0xeeeeee;
     },
 
     buyRandomUpgrade() {

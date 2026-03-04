@@ -47,8 +47,6 @@
                     <button class="btn" onclick="game.showShop()">THE CHAOS SHOP</button>
                     <button class="btn" style="border-color: #ffcc00; color: #ffcc00;"
                         onclick="game.showSkins()">GARAGEM DE SKINS</button>
-                    <button class="btn" style="border-color: #00ff88; color: #00ff88;"
-                        onclick="game.showChars()">PERSONAGENS (TIMES)</button>
                     <button class="btn" onclick="game.showStats()">HISTÓRICO</button>
                 </div>
                 <div style="margin-top: 20px; text-align: center;">
@@ -174,52 +172,33 @@
             </div>
         </div>
 
-        <!-- Characters Screen -->
-        <div id="char-screen" class="screen hidden">
-            <div class="panel" style="width: 85%; max-width: 900px; max-height: 80vh; overflow-y: auto;">
-                <h2 style="color: #00ff88; text-shadow: 0 0 15px #00ff88;">VESTIÁRIO DE CRAQUES</h2>
-                <p>Escolha seu piloto e vista o manto do seu time de coração!</p>
+    </div>
 
-                <div id="chars-grid"
-                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin: 30px 0;">
-                    <!-- Dynamically populated by economy.js -->
-                </div>
+    <!-- Race Results / Leaderboard -->
+    <div id="results-screen" class="screen hidden">
+        <div class="panel" style="width: 90%; max-width: 600px;">
+            <h2 id="final-result-title">RESULTADOS DA CORRIDA</h2>
 
-                <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                    <span class="hud-label">Suas Moedas:</span>
-                    <span id="char-coins" class="hud-value" style="color: var(--success);">0</span>
-                    <br><br>
-                    <button class="btn" onclick="game.hideChars()">VOLTAR AO MENU</button>
-                    <button class="btn primary" onclick="game.startRace()">PARTIDA RÁPIDA</button>
-                </div>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>POS</th>
+                        <th>PILOTO</th>
+                        <th>MELHOR VOLTA</th>
+                        <th>RECOMPENSA</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    <!-- Dynamically populated -->
+                </tbody>
+            </table>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn primary" onclick="game.goToMenu()">VOLTAR AO MENU</button>
+                <button class="btn" onclick="game.showShop()">MAIS UPGRADES</button>
             </div>
         </div>
-
-        <!-- Race Results / Leaderboard -->
-        <div id="results-screen" class="screen hidden">
-            <div class="panel" style="width: 90%; max-width: 600px;">
-                <h2 id="final-result-title">RESULTADOS DA CORRIDA</h2>
-
-                <table class="leaderboard-table">
-                    <thead>
-                        <tr>
-                            <th>POS</th>
-                            <th>PILOTO</th>
-                            <th>MELHOR VOLTA</th>
-                            <th>RECOMPENSA</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboard-body">
-                        <!-- Dynamically populated -->
-                    </tbody>
-                </table>
-
-                <div style="text-align: center; margin-top: 30px;">
-                    <button class="btn primary" onclick="game.goToMenu()">VOLTAR AO MENU</button>
-                    <button class="btn" onclick="game.showShop()">MAIS UPGRADES</button>
-                </div>
-            </div>
-        </div>
+    </div>
 
     </div>
 

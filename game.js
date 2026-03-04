@@ -266,11 +266,6 @@ const game = {
         console.log("Creating Fiat Uno with color:", color);
         const unoGroup = new THREE.Group();
 
-        // Pilot Integration
-        const driver = this.createDriver();
-        driver.position.set(0.8, 1.4, -0.4); // Right hand drive for firm car!
-        unoGroup.add(driver);
-
         // Main Boxy Body
         const bodyGeo = new THREE.BoxGeometry(4.2, 2.2, 7.5);
         const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3 });
@@ -340,12 +335,6 @@ const game = {
         console.log("Creating Doge Ram Pickup...");
         const ramGroup = new THREE.Group();
 
-        // Driver
-        const driver = this.createDriver();
-        driver.position.set(1.4, 2.5, 1.2);
-        driver.scale.set(1.2, 1.2, 1.2);
-        ramGroup.add(driver);
-
         // Huge Pickup Body
         const bodyGeo = new THREE.BoxGeometry(5.5, 2.5, 10);
         const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2 });
@@ -396,36 +385,6 @@ const game = {
         ramGroup.add(l2);
 
         return ramGroup;
-    },
-
-    createDriver() {
-        const charColor = typeof economy !== 'undefined' ? economy.getSelectedCharColor() : 0xffffff;
-        const driverGroup = new THREE.Group();
-
-        // Body (Shirt)
-        const bodyGeo = new THREE.BoxGeometry(1.2, 1.2, 0.6);
-        const bodyMat = new THREE.MeshStandardMaterial({ color: charColor });
-        const body = new THREE.Mesh(bodyGeo, bodyMat);
-        driverGroup.add(body);
-
-        // Head
-        const headGeo = new THREE.SphereGeometry(0.5, 16, 16);
-        const headMat = new THREE.MeshStandardMaterial({ color: 0xffdbac }); // Skin tone
-        const head = new THREE.Mesh(headGeo, headMat);
-        head.position.y = 1.0;
-        driverGroup.add(head);
-
-        // Arms (Simplified)
-        const armGeo = new THREE.BoxGeometry(0.3, 1.0, 0.3);
-        const armL = new THREE.Mesh(armGeo, bodyMat);
-        armL.position.set(0.8, 0.1, 0.4);
-        armL.rotation.x = -Math.PI / 4;
-        driverGroup.add(armL);
-        const armR = armL.clone();
-        armR.position.set(-0.8, 0.1, 0.4);
-        driverGroup.add(armR);
-
-        return driverGroup;
     },
 
     createBatmobile() {
@@ -519,11 +478,6 @@ const game = {
     createBMW(color) {
         console.log("Creating BMW 320i...");
         const bmwGroup = new THREE.Group();
-
-        // Driver
-        const driver = this.createDriver();
-        driver.position.set(0.8, 1.2, -0.5);
-        bmwGroup.add(driver);
 
         const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.1, metalness: 0.5 });
         const blackMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.5 });
@@ -726,7 +680,6 @@ const game = {
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('shop-screen').classList.add('hidden');
         document.getElementById('skin-screen').classList.add('hidden');
-        document.getElementById('char-screen').classList.add('hidden');
         document.getElementById('results-screen').classList.add('hidden');
         document.getElementById('hud').classList.remove('hidden');
         document.getElementById('hud-speed').classList.remove('hidden');
@@ -764,7 +717,6 @@ const game = {
 
         // UI
         document.getElementById('main-menu').classList.add('hidden');
-        document.getElementById('char-screen').classList.add('hidden');
         document.getElementById('hud').classList.remove('hidden');
         document.getElementById('hud-speed').classList.remove('hidden');
         document.getElementById('hud-lap').innerText = 'INFINITO';
@@ -1035,17 +987,6 @@ const game = {
         document.getElementById('main-menu').classList.remove('hidden');
     },
 
-    showChars() {
-        document.getElementById('main-menu').classList.add('hidden');
-        document.getElementById('char-screen').classList.remove('hidden');
-        economy.updateCharsUI();
-    },
-
-    hideChars() {
-        document.getElementById('char-screen').classList.add('hidden');
-        document.getElementById('main-menu').classList.remove('hidden');
-    },
-
     goToMenu() {
         this.lap = 1;
         this.isInfiniteMode = false;
@@ -1061,7 +1002,6 @@ const game = {
 
         document.getElementById('results-screen').classList.add('hidden');
         document.getElementById('skin-screen').classList.add('hidden');
-        document.getElementById('char-screen').classList.add('hidden');
         document.getElementById('main-menu').classList.remove('hidden');
         economy.updateUI();
     }
