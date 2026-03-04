@@ -948,8 +948,8 @@ const game = {
             const handling = effects.handling;
             const driftPenalty = this.playerCar.speed > 200 ? (1.0 / (effects.stability || 1.0)) : 1.0;
 
-            // Lateral Speed scales with forward speed for responsive arcade feel
-            const lateralSpeed = this.playerCar.speed * 0.45;
+            // Lateral Speed scales with forward speed (10% as requested)
+            const lateralSpeed = this.playerCar.speed * 0.10;
 
             if (this.keys.a) this.playerCar.xPos -= lateralSpeed * handling * driftPenalty * delta;
             if (this.keys.d) this.playerCar.xPos += lateralSpeed * handling * driftPenalty * delta;
