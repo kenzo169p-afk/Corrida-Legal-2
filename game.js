@@ -35,9 +35,9 @@ const game = {
 
     // Configuration
     TRACK_SEGMENT_LENGTH: 100,
-    CAR_MAX_SPEED: 320, // Aumentado para sensação Asphalt
-    ACCEL: 80,          // Base acceleration (multiplied by delta)
-    DECEL: 40,          // Base deceleration
+    CAR_MAX_SPEED: 464, // Aumentado em 45% (320 * 1.45)
+    ACCEL: 116,          // Aumentado em 45% (80 * 1.45)
+    DECEL: 58,          // Aumentado em 45% (40 * 1.45) para compensar a velocidade
     DRIFT_INTENSITY: 0.15,
 
     // Input
@@ -628,8 +628,8 @@ const game = {
             this.opponents.push({
                 mesh: oppGroup,
                 speed: 0,
-                targetSpeed: (160 + Math.random() * 50) * 1.1, // 10% mais rápido que antes
-                accel: (25 + Math.random() * 15) * 1.1,       // 10% mais aceleração
+                targetSpeed: (160 + Math.random() * 50) * 1.6, // Aumentado em 45% (original 1.1 * 1.45 ≈ 1.6)
+                accel: (25 + Math.random() * 15) * 1.6,       // Aumentado em 45%
                 xPos: x,
                 zPos: z,
                 lap: 1 // Start at lap 1 like player
