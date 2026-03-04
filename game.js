@@ -573,6 +573,88 @@ const game = {
         return cubeGroup;
     },
 
+    createMcQueen() {
+        console.log("Creating Lightning McQueen...");
+        const mcqGroup = new THREE.Group();
+
+        const redMat = new THREE.MeshStandardMaterial({ color: 0xff0000, roughness: 0.2 });
+        const yellowMat = new THREE.MeshStandardMaterial({ color: 0xffcc00 });
+        const blackMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0 });
+
+        // 1. Lower Body (Aerodynamic)
+        const bodyGeo = new THREE.BoxGeometry(4.5, 1.2, 9);
+        const body = new THREE.Mesh(bodyGeo, redMat);
+        body.position.y = 0.8;
+        mcqGroup.add(body);
+
+        // 2. Cabin
+        const cabinGeo = new THREE.BoxGeometry(4, 1, 4);
+        const cabin = new THREE.Mesh(cabinGeo, redMat);
+        cabin.position.set(0, 1.8, -0.5);
+        mcqGroup.add(cabin);
+
+        // 3. Eyes (Windshield)
+        const eyeGeo = new THREE.PlaneGeometry(3.6, 0.8);
+        const eyes = new THREE.Mesh(eyeGeo, glassMat);
+        eyes.rotation.x = -Math.PI / 6;
+        eyes.position.set(0, 1.8, 1.4);
+        mcqGroup.add(eyes);
+
+        // Pupils
+        const pupilGeo = new THREE.CircleGeometry(0.15, 8);
+        const p1 = new THREE.Mesh(pupilGeo, blackMat);
+        p1.position.set(0.8, 1.82, 1.41);
+        p1.rotation.x = -Math.PI / 6;
+        mcqGroup.add(p1);
+        const p2 = p1.clone();
+        p2.position.set(-0.8, 1.82, 1.41);
+        mcqGroup.add(p2);
+
+        // 4. Lightning Bolts (Sides)
+        const boltGeo = new THREE.BoxGeometry(0.1, 0.8, 4);
+        const boltL = new THREE.Mesh(boltGeo, yellowMat);
+        boltL.position.set(2.26, 1, 0);
+        boltL.rotation.z = 0.2;
+        mcqGroup.add(boltL);
+        const boltR = boltL.clone();
+        boltR.position.set(-2.26, 1, 0);
+        boltR.rotation.z = -0.2;
+        mcqGroup.add(boltR);
+
+        // 5. Spoiler (Traseira)
+        const spoilerV = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1, 0.5), redMat);
+        spoilerV.position.set(1.8, 1.8, -4);
+        mcqGroup.add(spoilerV);
+        const spoilerVR = spoilerV.clone();
+        spoilerVR.position.set(-1.8, 1.8, -4);
+        mcqGroup.add(spoilerVR);
+        const spoilerH = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.2, 1.2), redMat);
+        spoilerH.position.set(0, 2.3, -4);
+        mcqGroup.add(spoilerH);
+
+        // 6. Wheels (Racing Tires)
+        const wheelGeo = new THREE.CylinderGeometry(0.9, 0.9, 0.8, 16);
+        const wheelPos = [
+            [2, 0.9, 2.8], [-2, 0.9, 2.8], // Front
+            [2, 0.9, -2.8], [-2, 0.9, -2.8] // Rear
+        ];
+        wheelPos.forEach(pos => {
+            const w = new THREE.Mesh(wheelGeo, blackMat);
+            w.rotation.z = Math.PI / 2;
+            w.position.set(...pos);
+            mcqGroup.add(w);
+
+            // Red Rim
+            const rim = new THREE.Mesh(new THREE.CircleGeometry(0.5, 12), redMat);
+            rim.position.set(pos[0] * 1.05, pos[1], pos[2]);
+            rim.rotation.y = pos[0] > 0 ? Math.PI / 2 : -Math.PI / 2;
+            mcqGroup.add(rim);
+        });
+
+        return mcqGroup;
+    },
+
     createPlayerCar() {
         // Get selected skin color and ID from economy
         const selectedId = typeof economy !== 'undefined' ? economy.selectedSkin : 'default';
@@ -587,6 +669,8 @@ const game = {
             carGroup = this.createBatmobile();
         } else if (selectedId === 'the_cube') {
             carGroup = this.createCube(skinColor);
+        } else if (selectedId === 'mcqueen') {
+            carGroup = this.createMcQueen();
         } else {
             carGroup = this.createFiatUno(skinColor);
         }
