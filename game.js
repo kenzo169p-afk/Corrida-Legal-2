@@ -39,6 +39,8 @@ const game = {
     ACCEL: 150,          // Mais 30% (116 * 1.3)
     DECEL: 75,          // Mais 30% (58 * 1.3)
     DRIFT_INTENSITY: 0.15,
+    MAX_NITRO: 60,       // Duração máxima de 60 segundos
+    nitroLevel: 60,      // Nível atual do nitro
 
     // Input
     keys: { w: false, a: false, s: false, d: false, space: false },
@@ -772,6 +774,7 @@ const game = {
         this.playerCar.mesh.position.set(0, 1, 0);
 
         this.createOpponents();
+        this.nitroLevel = this.MAX_NITRO; // Reset Nitro
         this.startTimer();
     },
 
@@ -807,15 +810,24 @@ const game = {
 
         // Nitro Boost
         const nitroFlame = this.playerCar.mesh.getObjectByName("nitro_flame");
-        if (this.keys.space && this.playerCar.speed > 0) {
+        if (this.keys.space && this.playerCar.speed > 0 && this.nitroLevel > 0) {
             this.playerCar.speed += (accel * 5 * effects.nitro * delta);
+            this.nitroLevel -= delta; // Consome o nitro
             if (nitroFlame) {
                 nitroFlame.visible = true;
                 nitroFlame.scale.setScalar(1 + Math.random() * 0.5); // Flame flicker
             }
-            document.getElementById('nitro-bar').style.width = '100%';
         } else {
             if (nitroFlame) nitroFlame.visible = false;
+        }
+
+        // Update Nitro HUD
+        const nitroBar = document.getElementById('nitro-bar');
+        if (nitroBar) {
+            const nitroPercent = Math.max(0, (this.nitroLevel / this.MAX_NITRO) * 100);
+            nitroBar.style.width = `${nitroPercent}%`;
+            // Visual feedback when empty
+            nitroBar.style.boxShadow = nitroPercent > 0 ? '0 0 20px #ff00ff' : 'none';
         }
 
         // Clamp Speed
