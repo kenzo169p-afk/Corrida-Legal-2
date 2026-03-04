@@ -872,6 +872,7 @@ const game = {
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('shop-screen').classList.add('hidden');
         document.getElementById('skin-screen').classList.add('hidden');
+        document.getElementById('credits-screen').classList.add('hidden');
         document.getElementById('results-screen').classList.add('hidden');
         document.getElementById('hud').classList.remove('hidden');
         document.getElementById('hud-speed').classList.remove('hidden');
@@ -1119,6 +1120,7 @@ const game = {
     showShop() {
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('results-screen').classList.add('hidden');
+        document.getElementById('credits-screen').classList.add('hidden');
         document.getElementById('shop-screen').classList.remove('hidden');
         economy.updateUI();
     },
@@ -1130,6 +1132,7 @@ const game = {
 
     showSkins() {
         document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('credits-screen').classList.add('hidden');
         document.getElementById('skin-screen').classList.remove('hidden');
         economy.updateSkinsUI();
     },
@@ -1152,8 +1155,19 @@ const game = {
 
         document.getElementById('results-screen').classList.add('hidden');
         document.getElementById('skin-screen').classList.add('hidden');
+        document.getElementById('credits-screen').classList.add('hidden');
         document.getElementById('main-menu').classList.remove('hidden');
         economy.updateUI();
+    },
+
+    showCredits() {
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('credits-screen').classList.remove('hidden');
+    },
+
+    hideCredits() {
+        document.getElementById('credits-screen').classList.add('hidden');
+        document.getElementById('main-menu').classList.remove('hidden');
     }
 };
 

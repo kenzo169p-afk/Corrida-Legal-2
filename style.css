@@ -89,7 +89,11 @@ h1 {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 30px rgba(0, 242, 255, 0.3);
+    /* Reduzido o blur de 30px para 10px e adicionado um outline escuro sutil para maior nitidez */
+    text-shadow:
+        0 0 10px rgba(0, 242, 255, 0.5),
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
 h2 {
