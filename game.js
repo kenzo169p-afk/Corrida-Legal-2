@@ -195,15 +195,34 @@ const game = {
         this.scene.background = new THREE.Color(track.fog);
         this.scene.fog = new THREE.FogExp2(track.fog, 0.0008);
 
-        console.log("Building environment for:", track.name);
+        console.log("Building high-fidelity environment for:", track.name);
+
+        // Window Texture for Buildings
+        const winCanvas = document.createElement('canvas');
+        winCanvas.width = 64;
+        winCanvas.height = 64;
+        const wCtx = winCanvas.getContext('2d');
+        wCtx.fillStyle = '#050505';
+        wCtx.fillRect(0, 0, 64, 64);
+        wCtx.fillStyle = '#ffffff';
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 8; j++) {
+                if (Math.random() > 0.4) {
+                    wCtx.globalAlpha = 0.3 + Math.random() * 0.7;
+                    wCtx.fillRect(i * 16 + 4, j * 8 + 2, 8, 4);
+                }
+            }
+        }
+        const winTex = new THREE.CanvasTexture(winCanvas);
+        winTex.wrapS = winTex.wrapT = THREE.RepeatWrapping;
 
         // Cyber Skybox
-        const skyGeo = new THREE.SphereGeometry(1000, 32, 32);
+        const skyGeo = new THREE.SphereGeometry(1200, 32, 32);
         const skyMat = new THREE.MeshBasicMaterial({
             color: track.envColor,
             side: THREE.BackSide,
             transparent: true,
-            opacity: 0.3
+            opacity: 0.2
         });
         const sky = new THREE.Mesh(skyGeo, skyMat);
         sky.name = 'track_element';
@@ -212,51 +231,134 @@ const game = {
         // Starry Sky
         const starGeo = new THREE.BufferGeometry();
         const starPos = [];
-        for (let i = 0; i < 2000; i++) {
-            starPos.push((Math.random() - 0.5) * 2000, Math.random() * 1000, -(Math.random()) * 5000);
+        for (let i = 0; i < 3000; i++) {
+            starPos.push((Math.random() - 0.5) * 3000, Math.random() * 1500, -(Math.random()) * 8000);
         }
         starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
-        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.5 });
+        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.2, transparent: true, opacity: 0.8 });
         const stars = new THREE.Points(starGeo, starMat);
         stars.name = 'track_element';
         this.scene.add(stars);
 
-        // Futuristic Buildings - BROUGHT CLOSER
-        for (let i = 0; i < 120; i++) {
+        // Futuristic Buildings
+        for (let i = 0; i < 150; i++) {
+            const type = Math.floor(Math.random() * 3);
             const w = 15 + Math.random() * 25;
-            const h = 60 + Math.random() * 200;
+            const h = 80 + Math.random() * 250;
             const d = 15 + Math.random() * 25;
-            const geo = new THREE.BoxGeometry(w, h, d);
 
-            const mat = new THREE.MeshStandardMaterial({
+            const bGroup = new THREE.Group();
+            bGroup.name = 'track_element';
+
+            const bodyMat = new THREE.MeshStandardMaterial({
                 color: 0x0a0a0a,
-                roughness: 0.1,
-                metalness: 0.9,
-                emissive: i % 4 === 0 ? track.color : 0x111111,
-                emissiveIntensity: 0.4
+                roughness: 0.2,
+                metalness: 0.8,
+                emissive: i % 5 === 0 ? track.color : 0x050505,
+                emissiveIntensity: 0.2
             });
 
-            const building = new THREE.Mesh(geo, mat);
-            building.name = 'track_element';
+            const winMat = new THREE.MeshLambertMaterial({
+                color: track.color,
+                map: winTex,
+                emissive: track.color,
+                emissiveIntensity: 0.5,
+                transparent: true,
+                opacity: 0.9
+            });
 
-            const side = Math.random() > 0.5 ? 1 : -1;
-            const x = side * (45 + Math.random() * 150); // Closest is 45 units (Road is 30)
-            const z = -Math.random() * length;
-            building.position.set(x, h / 2 - 5, z);
+            // Main Structure
+            const geo = new THREE.BoxGeometry(w, h, d);
+            const building = new THREE.Mesh(geo, bodyMat);
+            bGroup.add(building);
 
-            // Neon strips
-            const stripGeo = new THREE.BoxGeometry(w + 0.5, 1, d + 0.5);
-            const stripMat = new THREE.MeshBasicMaterial({ color: track.color });
-            for (let j = 0; j < 3; j++) {
-                const strip = new THREE.Mesh(stripGeo, stripMat);
-                strip.position.y = (j - 1) * (h / 3);
-                building.add(strip);
+            // Add windows to facade
+            const winBox = new THREE.Mesh(new THREE.BoxGeometry(w + 0.2, h * 0.8, d + 0.2), winMat);
+            winBox.position.y = 0;
+            const texScale = h / 20;
+            winMat.map.repeat.set(2, texScale);
+            bGroup.add(winBox);
+
+            // Building Variations
+            if (type === 1) { // Spire
+                const spireGeo = new THREE.CylinderGeometry(0, w / 3, h / 4, 4);
+                const spire = new THREE.Mesh(spireGeo, bodyMat);
+                spire.position.y = h / 2 + h / 8;
+                bGroup.add(spire);
+                const light = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+                light.position.y = h / 2 + h / 4;
+                bGroup.add(light);
+            } else if (type === 2) { // Twin towers style / Top detail
+                const topGeo = new THREE.BoxGeometry(w * 0.8, 10, d * 0.8);
+                const top = new THREE.Mesh(topGeo, new THREE.MeshBasicMaterial({ color: track.color }));
+                top.position.y = h / 2;
+                bGroup.add(top);
             }
 
-            this.scene.add(building);
+            const side = Math.random() > 0.5 ? 1 : -1;
+            const x = side * (50 + Math.random() * 250);
+            const z = -Math.random() * length;
+            bGroup.position.set(x, h / 2 - 5, z);
+            this.scene.add(bGroup);
+
+            // Occasional Holograms
+            if (i % 15 === 0) {
+                const holoGeo = new THREE.PlaneGeometry(30, 50);
+                const holoMat = new THREE.MeshBasicMaterial({
+                    color: i % 2 === 0 ? 0x00f2ff : 0xff00ff,
+                    transparent: true,
+                    opacity: 0.2,
+                    side: THREE.DoubleSide
+                });
+                const holo = new THREE.Mesh(holoGeo, holoMat);
+                holo.position.set(x - side * 40, h / 2, z + (Math.random() - 0.5) * 50);
+                holo.rotation.y = Math.PI / 4 * side;
+                holo.name = 'track_element';
+                this.scene.add(holo);
+            }
         }
 
-        // Update HUD
+        // Street Lights along the track
+        for (let z = 0; z < length; z += 150) {
+            const postGeo = new THREE.CylinderGeometry(0.5, 0.5, 25);
+            const postMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+
+            [-45, 45].forEach(x => {
+                const post = new THREE.Mesh(postGeo, postMat);
+                post.position.set(x, 12.5, -z);
+                post.name = 'track_element';
+                this.scene.add(post);
+
+                const lampGeo = new THREE.BoxGeometry(4, 1, 2);
+                const lampMat = new THREE.MeshBasicMaterial({ color: track.color });
+                const lamp = new THREE.Mesh(lampGeo, lampMat);
+                lamp.position.set(x > 0 ? -2 : 2, 12, 0);
+                post.add(lamp);
+
+                const glow = new THREE.PointLight(track.color, 50, 40);
+                glow.position.set(x > 0 ? -2 : 2, 11, 0);
+                post.add(glow);
+            });
+        }
+
+        // Flying Traffic (Distant glowing lights)
+        for (let i = 0; i < 40; i++) {
+            const trafficGeo = new THREE.SphereGeometry(1, 8, 8);
+            const trafficMat = new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0xffffff : track.color });
+            const light = new THREE.Mesh(trafficGeo, trafficMat);
+
+            const side = Math.random() > 0.5 ? 1 : -1;
+            const x = side * (100 + Math.random() * 300);
+            const y = 50 + Math.random() * 150;
+            const z = -Math.random() * length;
+
+            light.position.set(x, y, z);
+            light.name = 'track_element';
+            light.userData = { speed: 50 + Math.random() * 100, zStart: z };
+            this.scene.add(light);
+        }
+
+        // Update HUD (Existing)
         const msgEl = document.getElementById('hud-msg');
         if (msgEl) msgEl.innerText = track.name;
     },
