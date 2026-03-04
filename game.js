@@ -22,8 +22,7 @@ const game = {
     tracks: [
         { name: 'SÃO PAULO 2077', color: 0x00f2ff, envColor: 0x004444, fog: 0x000000 },
         { name: 'CYBER NORTH', color: 0xff00ff, envColor: 0x440044, fog: 0x050005 },
-        { name: 'DESERT ROAD', color: 0xff7700, envColor: 0x442200, fog: 0x110500 },
-        { name: 'RIO DE JANEIRO', color: 0xffff00, envColor: 0x0088ff, fog: 0x004488 }
+        { name: 'DESERT ROAD', color: 0xff7700, envColor: 0x442200, fog: 0x110500 }
     ],
 
 
@@ -33,8 +32,6 @@ const game = {
     startTime: 0,
     bestLap: Infinity,
     timerInterval: null,
-    isInfiniteMode: false,
-    coinInterval: null,
 
     // Configuration
     TRACK_SEGMENT_LENGTH: 100,
@@ -694,53 +691,6 @@ const game = {
         this.startTimer();
     },
 
-    startInfiniteMode() {
-        this.currentState = 'race';
-        this.isRunning = true;
-        this.isInfiniteMode = true;
-
-        // Selecionar Rio de Janeiro (índice 3 adicionado antes)
-        this.currentTrackIndex = 3;
-        this.createTrack();
-
-        // Música
-        const music = document.getElementById('bg-music');
-        if (music) {
-            music.volume = 0.4;
-            music.play().catch(e => console.log("Music blocked."));
-        }
-
-        // Criar carro com skin atual
-        if (this.playerCar) this.scene.remove(this.playerCar.mesh);
-        this.createPlayerCar();
-        this.playerCar.effects = economy.getCombinedEffects();
-
-        // UI
-        document.getElementById('main-menu').classList.add('hidden');
-        document.getElementById('hud').classList.remove('hidden');
-        document.getElementById('hud-speed').classList.remove('hidden');
-        document.getElementById('hud-lap').innerText = 'INFINITO';
-
-        // Reset Estado
-        this.playerCar.speed = 0;
-        this.playerCar.zPos = 0;
-        this.playerCar.xPos = 0;
-        this.playerCar.mesh.position.set(0, 1, 0);
-
-        // Sem oponentes
-        this.opponents.forEach(opp => this.scene.remove(opp.mesh));
-        this.opponents = [];
-
-        this.startTimer();
-
-        // Ganhar 100 moedas por segundo
-        if (this.coinInterval) clearInterval(this.coinInterval);
-        this.coinInterval = setInterval(() => {
-            if (this.isRunning && this.isInfiniteMode) {
-                economy.addCoins(100);
-            }
-        }, 1000);
-    },
 
     startTimer() {
         const start = Date.now();
@@ -906,12 +856,7 @@ const game = {
     finishRace() {
         this.isRunning = false;
         clearInterval(this.timerInterval);
-        if (this.coinInterval) clearInterval(this.coinInterval);
 
-        if (this.isInfiniteMode) {
-            this.goToMenu();
-            return;
-        }
         const trackLen = 10000;
         let finalPos = 1;
         const playerProgress = (this.totalLaps) * trackLen; // Player just finished
@@ -989,8 +934,6 @@ const game = {
 
     goToMenu() {
         this.lap = 1;
-        this.isInfiniteMode = false;
-        if (this.coinInterval) clearInterval(this.coinInterval);
 
         // Lower music volume for menu
         const music = document.getElementById('bg-music');
