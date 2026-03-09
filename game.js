@@ -194,7 +194,7 @@ const game = {
     createEnv(length) {
         const track = this.tracks[this.currentTrackIndex];
         this.scene.background = new THREE.Color(track.fog);
-        this.scene.fog = new THREE.FogExp2(track.fog, 0.0008);
+        this.scene.fog = new THREE.FogExp2(track.fog, 0.0004); // Reduzido (era 0.0008) para ver mais longe
 
         console.log("Building high-performance optimized environment for:", track.name);
 
@@ -219,8 +219,8 @@ const game = {
 
             this.sharedAssets = {
                 winTex,
-                bodyMat: new THREE.MeshStandardMaterial({ color: 0x080808, roughness: 0.2, metalness: 0.8 }),
-                winMat: new THREE.MeshLambertMaterial({ map: winTex, emissive: 0xffffff, emissiveIntensity: 0.5, transparent: true, opacity: 0.9 })
+                bodyMat: new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.2, metalness: 0.8 }), // Cor levemente mais clara (era 0x080808)
+                winMat: new THREE.MeshLambertMaterial({ map: winTex, emissive: 0xffffff, emissiveIntensity: 0.6, transparent: true, opacity: 0.9 })
             };
         }
 
@@ -251,7 +251,7 @@ const game = {
             const d = 20 + Math.random() * 20;
 
             const side = Math.random() > 0.5 ? 1 : -1;
-            const x = side * (80 + Math.random() * 320);
+            const x = side * (60 + Math.random() * 300); // Aproximado da pista (era 80+)
             const z = -Math.random() * length;
 
             dummy.position.set(x, h / 2 - 5, z);
@@ -289,7 +289,7 @@ const game = {
             const h = 150 + Math.random() * 300;
 
             const side = Math.random() > 0.5 ? 1 : -1;
-            const x = side * (150 + Math.random() * 400);
+            const x = side * (120 + Math.random() * 350); // Aproximado da pista (era 150+)
             const z = -Math.random() * length;
 
             dummy.position.set(x, h / 2 - 5, z);
