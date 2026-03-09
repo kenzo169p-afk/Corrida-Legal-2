@@ -206,12 +206,12 @@ const game = {
             winCanvas.width = 128; winCanvas.height = 128;
             const wCtx = winCanvas.getContext('2d');
             wCtx.fillStyle = '#050505'; wCtx.fillRect(0, 0, 128, 128);
-            const winColors = [0x00f2ff, 0xff00ff, 0xffff00, 0xffffff];
+            const winColors = [0x0088ff, 0x00ccff, 0x00ffff, 0x4444ff]; // Diferentes tons de azul
             for (let i = 0; i < 8; i++) {
                 for (let j = 0; j < 16; j++) {
                     if (Math.random() > 0.3) {
                         const c = winColors[Math.floor(Math.random() * winColors.length)];
-                        wCtx.globalAlpha = 0.5; wCtx.fillStyle = `#${c.toString(16).padStart(6, '0')}`;
+                        wCtx.globalAlpha = 1.0; wCtx.fillStyle = `#${c.toString(16).padStart(6, '0')}`;
                         wCtx.fillRect(i * 16 + 2, j * 8 + 2, 12, 4);
                     }
                 }
@@ -270,9 +270,8 @@ const game = {
             dummy.updateMatrix();
             instancedBuildings.setMatrixAt(i, dummy.matrix);
 
-            // Cor aleatória brilhante para o prédio
-            const randColor = new THREE.Color().setHSL(Math.random(), 0.7, 0.6);
-            instancedBuildings.setColorAt(i, randColor);
+            // Prédios agora são apenas brancos
+            instancedBuildings.setColorAt(i, new THREE.Color(0xffffff));
 
             // Adiciona uma luz de ponto próxima a alguns prédios para iluminar a cena lateral
             if (i % 10 === 0) {
@@ -319,9 +318,8 @@ const game = {
             dummy.updateMatrix();
             instancedTowers.setMatrixAt(i, dummy.matrix);
 
-            // Cor aleatória brilhante para a torre (tons de azul/cyan/branco)
-            const towerColor = new THREE.Color().setHSL(0.5 + Math.random() * 0.2, 0.8, 0.7);
-            instancedTowers.setColorAt(i, towerColor);
+            // Torres agora são apenas brancas
+            instancedTowers.setColorAt(i, new THREE.Color(0xffffff));
 
             // Spire for towers
             dummy.position.set(x, h, z);
