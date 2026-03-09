@@ -63,10 +63,12 @@ const game = {
         const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Reduzido para dar foco às luzes neon
         this.scene.add(ambientLight);
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(0, 50, 50);
-        directionalLight.castShadow = true;
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2); // Aumentado (era 0.8)
+        directionalLight.position.set(100, 200, 100);
         this.scene.add(directionalLight);
+
+        const hemLight = new THREE.HemisphereLight(0x444477, 0x111122, 0.6); // Luz de hemisfério para preencher as sombras
+        this.scene.add(hemLight);
 
         // Event Listeners
         window.addEventListener('resize', () => this.onWindowResize());
@@ -219,9 +221,18 @@ const game = {
 
             this.sharedAssets = {
                 winTex,
-                bodyMat: new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.2, metalness: 0.8 }), // Cor levemente mais clara (era 0x080808)
-                winMat: new THREE.MeshLambertMaterial({ map: winTex, emissive: 0xffffff, emissiveIntensity: 0.6, transparent: true, opacity: 0.9 })
+                bodyMat: new THREE.MeshStandardMaterial({
+                    color: 0x1a1a1a,
+                    roughness: 0.7,
+                    metalness: 0.2,
+                    emissive: 0x111111, // Brilho base para não ficar preto absoluto
+                    emissiveMap: winTex, // Usa a textura de janelas como luz
+                    emissiveIntensity: 2.0 // Intensidade do brilho das janelas
+                }),
+                winMat: new THREE.MeshLambertMaterial({ map: winTex, emissive: 0xffffff, emissiveIntensity: 1.0, transparent: true, opacity: 0.9 })
             };
+            this.sharedAssets.bodyMat.map = winTex; // Também aplica como textura de cor
+            winTex.repeat.set(2, 10); // Repete a textura para parecer janelas pequenas
         }
 
         // --- OPTIMIZATION: Instanced Mesh for Buildings ---
@@ -258,6 +269,13 @@ const game = {
             dummy.scale.set(w, h, d);
             dummy.updateMatrix();
             instancedBuildings.setMatrixAt(i, dummy.matrix);
+
+            // Adiciona uma luz de ponto próxima a alguns prédios para iluminar a cena lateral
+            if (i % 10 === 0) {
+                const bLight = new THREE.PointLight(trackColors[i % 4], 50, 150);
+                bLight.position.set(x - (side * 20), h * 0.2, z);
+                this.scene.add(bLight);
+            }
 
             // Spire on top
             dummy.position.set(x, h, z);
