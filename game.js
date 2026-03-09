@@ -196,7 +196,7 @@ const game = {
     createEnv(length) {
         const track = this.tracks[this.currentTrackIndex];
         this.scene.background = new THREE.Color(track.fog);
-        this.scene.fog = new THREE.FogExp2(track.fog, 0.0004); // Reduzido (era 0.0008) para ver mais longe
+        this.scene.fog = null; // DESATIVADO TOTALMENTE para garantir que nada suma na sombra
 
         console.log("Building high-performance optimized environment for:", track.name);
 
@@ -262,7 +262,7 @@ const game = {
             const d = 20 + Math.random() * 20;
 
             const side = Math.random() > 0.5 ? 1 : -1;
-            const x = side * (60 + Math.random() * 300); // Aproximado da pista (era 80+)
+            const x = side * (45 + Math.random() * 250); // BEM MAIS PERTO (margem de apenas 10 da pista)
             const z = -Math.random() * length;
 
             dummy.position.set(x, h / 2 - 5, z);
@@ -311,7 +311,7 @@ const game = {
             const h = 150 + Math.random() * 300;
 
             const side = Math.random() > 0.5 ? 1 : -1;
-            const x = side * (120 + Math.random() * 350); // Aproximado da pista (era 150+)
+            const x = side * (80 + Math.random() * 300); // BEM MAIS PERTO
             const z = -Math.random() * length;
 
             dummy.position.set(x, h / 2 - 5, z);
@@ -341,8 +341,18 @@ const game = {
             }
         }
 
+        instancedBuildings.instanceMatrix.needsUpdate = true;
+        instancedBuildings.instanceColor.needsUpdate = true;
+        instancedBuildings.computeBoundingSphere();
         this.scene.add(instancedBuildings);
+
+        instancedTowers.instanceMatrix.needsUpdate = true;
+        instancedTowers.instanceColor.needsUpdate = true;
+        instancedTowers.computeBoundingSphere();
         this.scene.add(instancedTowers);
+
+        instancedSpires.instanceMatrix.needsUpdate = true;
+        instancedSpires.computeBoundingSphere();
         this.scene.add(instancedSpires);
 
         // Street Lights along the track
