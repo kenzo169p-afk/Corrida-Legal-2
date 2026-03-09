@@ -70,7 +70,7 @@
             </div>
 
             <!-- Race Stats (Top Left) -->
-            <div style="display: flex; gap: 15px; position: fixed; top: 20px; left: 20px;">
+            <div style="display: flex; gap: 15px; position: fixed; top: 20px; left: 20px; align-items: center;">
                 <div class="hud-item">
                     <span class="hud-label">Lap</span>
                     <span id="hud-lap" class="hud-value">1/3</span>
@@ -83,6 +83,9 @@
                     <span class="hud-label">Tempo</span>
                     <span id="hud-timer" class="hud-value" style="font-family: monospace;">00:00.00</span>
                 </div>
+                <!-- Botão Voltar ao Menu durante a corrida -->
+                <button class="btn" style="margin: 0; padding: 5px 15px; font-size: 0.7rem; height: auto;"
+                    onclick="game.goToMenu()">ABANDONAR</button>
             </div>
         </div>
 

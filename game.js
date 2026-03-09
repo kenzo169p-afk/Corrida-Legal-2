@@ -1297,19 +1297,31 @@ const game = {
 
     goToMenu() {
         this.lap = 1;
+        this.isRunning = false;
+        this.currentState = 'menu';
+
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
 
         // Lower music volume for menu
         const music = document.getElementById('bg-music');
         if (music) music.volume = 0.2;
 
-        // Switch track for next round
-        this.currentTrackIndex = (this.currentTrackIndex + 1) % this.tracks.length;
-        this.createTrack(); // Rebuild track for new environment
+        // Limpar oponentes para não ficarem rodando em background
+        this.opponents.forEach(opp => {
+            if (opp.mesh && opp.mesh.parent) this.scene.remove(opp.mesh);
+        });
+        this.opponents = [];
 
+        document.getElementById('hud').classList.add('hidden');
+        document.getElementById('hud-speed').classList.add('hidden');
         document.getElementById('results-screen').classList.add('hidden');
         document.getElementById('skin-screen').classList.add('hidden');
         document.getElementById('credits-screen').classList.add('hidden');
         document.getElementById('main-menu').classList.remove('hidden');
+
         economy.updateUI();
     },
 
