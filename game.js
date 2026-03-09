@@ -298,16 +298,9 @@ const game = {
             dummy.updateMatrix();
             instancedSpires.setMatrixAt(i, dummy.matrix);
 
-            // Neon strip (Apenas Azul)
-            const neonMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-            const neon = new THREE.Mesh(new THREE.BoxGeometry(1.5, h, 1.5), neonMat);
-            neon.position.set(x + (w / 2 * side), h / 2 - 5, z);
-            neon.name = 'track_element';
-            this.scene.add(neon);
-
-            if (i % 15 === 0) {
+            if (i % 20 === 0) {
                 const holoGeo = new THREE.PlaneGeometry(50, 40);
-                const holoMat = new THREE.MeshBasicMaterial({ color: 0x00ccff, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+                const holoMat = new THREE.MeshBasicMaterial({ color: 0x00ccff, transparent: true, opacity: 0.2, side: THREE.DoubleSide });
                 const holo = new THREE.Mesh(holoGeo, holoMat);
                 holo.position.set(x - side * 50, h * 0.7, z);
                 holo.rotation.y = Math.PI / 2;
