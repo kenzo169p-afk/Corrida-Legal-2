@@ -200,32 +200,15 @@ const game = {
 
         console.log("Building high-performance optimized environment for:", track.name);
 
-        // --- OPTIMIZATION: Share Textures and Materials (Forced Refresh) ---
-        const winCanvas = document.createElement('canvas');
-        winCanvas.width = 128; winCanvas.height = 128;
-        const wCtx = winCanvas.getContext('2d');
-        wCtx.fillStyle = '#050505'; wCtx.fillRect(0, 0, 128, 128);
-        const winColors = [0x0088ff, 0x00ccff, 0x00ffff, 0x4444ff]; // Diferentes tons de azul
-        for (let i = 0; i < 8; i++) {
-            for (let j = 0; j < 16; j++) {
-                if (Math.random() > 0.3) {
-                    const c = winColors[Math.floor(Math.random() * winColors.length)];
-                    wCtx.globalAlpha = 1.0; wCtx.fillStyle = `#${c.toString(16).padStart(6, '0')}`;
-                    wCtx.fillRect(i * 16 + 2, j * 8 + 2, 12, 4);
-                }
-            }
-        }
-        const winTex = new THREE.CanvasTexture(winCanvas);
-        winTex.wrapS = winTex.wrapT = THREE.RepeatWrapping;
-        winTex.repeat.set(2, 10);
-
+        // --- LIMPEZA E CONFIGURAÇÃO DOS MATERIAIS ---
         this.sharedAssets = {
             bodyMat: new THREE.MeshStandardMaterial({
-                color: 0xffffff, // Prédio Branco Puro
-                roughness: 0.1,
-                metalness: 0.5
+                color: 0xffffff, // Prédio Totalmente Branco
+                roughness: 0.8,
+                metalness: 0.0,
+                emissive: 0x000000 // Sem brilho azulado nas paredes
             }),
-            winMat: new THREE.MeshBasicMaterial({ color: 0x00f2ff }) // Janela Azul Neon
+            winMat: new THREE.MeshBasicMaterial({ color: 0xade8ff }) // Janela Azul Claro (Light Blue)
         };
         this.sharedAssets.bodyMat.needsUpdate = true;
 
@@ -270,7 +253,7 @@ const game = {
             instancedBuildings.setMatrixAt(i, dummy.matrix);
             instancedBuildings.setColorAt(i, new THREE.Color(0xffffff));
 
-            // Colocar 6 janelas azuis (3 linhas x 2 colunas) na frente de cada prédio
+            // EXATAMENTE 6 JANELAS AZUL CLARO
             let winIdx = i * 6;
             for (let row = 0; row < 3; row++) {
                 for (let col = 0; col < 2; col++) {
@@ -279,7 +262,7 @@ const game = {
                     const posX = x + (col === 0 ? -w / 4 : w / 4);
                     const posY = (h * 0.25) + (row * h * 0.25);
                     dummy.position.set(posX, posY, z + d / 2 + 0.1); // Face frontal
-                    dummy.scale.set(winW, winH, 1);
+                    dummy.scale.set(winW, winH, 0.5);
                     dummy.updateMatrix();
                     instancedWindows.setMatrixAt(winIdx++, dummy.matrix);
                 }
@@ -331,7 +314,7 @@ const game = {
                     const posX = x + (col === 0 ? -radius / 3 : radius / 3);
                     const posY = (h * 0.25) + (row * h * 0.25);
                     dummy.position.set(posX, posY, z + radius + 0.1);
-                    dummy.scale.set(radius * 0.4, h * 0.08, 1);
+                    dummy.scale.set(radius * 0.4, h * 0.08, 0.5);
                     dummy.updateMatrix();
                     instancedWindows.setMatrixAt(towerWinIdx++, dummy.matrix);
                 }
