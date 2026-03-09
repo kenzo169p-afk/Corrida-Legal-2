@@ -225,22 +225,33 @@ const game = {
         }
 
         // --- OPTIMIZATION: Instanced Mesh for Buildings ---
-        // Instead of 160 groups, we'll use InstancedMesh for the main bodies
         const buildCount = 120;
         const baseGeo = new THREE.BoxGeometry(1, 1, 1);
         const instancedBuildings = new THREE.InstancedMesh(baseGeo, this.sharedAssets.bodyMat, buildCount);
         instancedBuildings.name = 'track_element';
-        const dummy = new THREE.Object3D();
 
+        // --- NEW: Tower Variations (Hexagonal Skyscrapers) ---
+        const towerGeo = new THREE.CylinderGeometry(0.6, 1, 1, 6); // Tapered hexagonal towers
+        const towerCount = 60;
+        const instancedTowers = new THREE.InstancedMesh(towerGeo, this.sharedAssets.bodyMat, towerCount);
+        instancedTowers.name = 'track_element';
+
+        // --- NEW: Antennas/Spires ---
+        const spireGeo = new THREE.BoxGeometry(0.1, 1, 0.1);
+        const instancedSpires = new THREE.InstancedMesh(spireGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }), buildCount + towerCount);
+        instancedSpires.name = 'track_element';
+
+        const dummy = new THREE.Object3D();
         const trackColors = [track.color, 0x00f2ff, 0xff00ff, 0xffff00];
 
+        // 1. Regular Buildings
         for (let i = 0; i < buildCount; i++) {
             const w = 20 + Math.random() * 20;
             const h = 80 + Math.random() * 200;
             const d = 20 + Math.random() * 20;
 
             const side = Math.random() > 0.5 ? 1 : -1;
-            const x = side * (70 + Math.random() * 300);
+            const x = side * (80 + Math.random() * 320);
             const z = -Math.random() * length;
 
             dummy.position.set(x, h / 2 - 5, z);
@@ -248,58 +259,95 @@ const game = {
             dummy.updateMatrix();
             instancedBuildings.setMatrixAt(i, dummy.matrix);
 
-            // Add ONE neon strip per building instead of multiple (Better perf)
+            // Spire on top
+            dummy.position.set(x, h, z);
+            dummy.scale.set(1, 20 + Math.random() * 40, 1);
+            dummy.updateMatrix();
+            instancedSpires.setMatrixAt(i, dummy.matrix);
+
+            // Neon strip
             const neonMat = new THREE.MeshBasicMaterial({ color: trackColors[i % 4] });
-            const neon = new THREE.Mesh(new THREE.BoxGeometry(1, h, 1), neonMat);
+            const neon = new THREE.Mesh(new THREE.BoxGeometry(1.5, h, 1.5), neonMat);
             neon.position.set(x + (w / 2 * side), h / 2 - 5, z);
             neon.name = 'track_element';
             this.scene.add(neon);
 
-            // Limited Holograms (Reduced count for perf)
             if (i % 15 === 0) {
-                const holoGeo = new THREE.PlaneGeometry(40, 30);
+                const holoGeo = new THREE.PlaneGeometry(50, 40);
                 const holoMat = new THREE.MeshBasicMaterial({ color: trackColors[Math.floor(Math.random() * 4)], transparent: true, opacity: 0.3, side: THREE.DoubleSide });
                 const holo = new THREE.Mesh(holoGeo, holoMat);
-                holo.position.set(x - side * 40, h * 0.6, z);
+                holo.position.set(x - side * 50, h * 0.7, z);
                 holo.rotation.y = Math.PI / 2;
                 holo.name = 'hologram';
                 this.scene.add(holo);
             }
         }
+
+        // 2. Futuristic Towers
+        for (let i = 0; i < towerCount; i++) {
+            const radius = 15 + Math.random() * 15;
+            const h = 150 + Math.random() * 300;
+
+            const side = Math.random() > 0.5 ? 1 : -1;
+            const x = side * (150 + Math.random() * 400);
+            const z = -Math.random() * length;
+
+            dummy.position.set(x, h / 2 - 5, z);
+            dummy.scale.set(radius, h, radius);
+            dummy.updateMatrix();
+            instancedTowers.setMatrixAt(i, dummy.matrix);
+
+            // Spire for towers
+            dummy.position.set(x, h, z);
+            dummy.scale.set(2, 50 + Math.random() * 50, 2);
+            dummy.updateMatrix();
+            instancedSpires.setMatrixAt(buildCount + i, dummy.matrix);
+
+            // Pulsing Ring (Aesthetically futuristic)
+            if (i % 5 === 0) {
+                const ringGeo = new THREE.TorusGeometry(radius * 1.5, 0.5, 8, 24);
+                const ringMat = new THREE.MeshBasicMaterial({ color: trackColors[i % 4], transparent: true, opacity: 0.5 });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.position.set(x, h * 0.8, z);
+                ring.rotation.x = Math.PI / 2;
+                ring.name = 'hologram'; // Reuse animation logic
+                this.scene.add(ring);
+            }
+        }
+
         this.scene.add(instancedBuildings);
+        this.scene.add(instancedTowers);
+        this.scene.add(instancedSpires);
 
-
-
-        // Street Lights along the track (Optimized: Using fewer PointLights)
-        for (let z = 0; z < length; z += 300) { // Increased spacing
+        // Street Lights along the track
+        for (let z = 0; z < length; z += 400) {
             [-45, 45].forEach(x => {
-                const post = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 25), new THREE.MeshStandardMaterial({ color: 0x222222 }));
-                post.position.set(x, 12.5, -z);
+                const post = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 30), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+                post.position.set(x, 15, -z);
                 post.name = 'track_element';
                 this.scene.add(post);
 
-                const lamp = new THREE.Mesh(new THREE.BoxGeometry(4, 1, 2), new THREE.MeshBasicMaterial({ color: track.color }));
-                lamp.position.set(x > 0 ? -2 : 2, 12, 0);
+                const lamp = new THREE.Mesh(new THREE.BoxGeometry(6, 1, 2), new THREE.MeshBasicMaterial({ color: track.color }));
+                lamp.position.set(x > 0 ? -2 : 2, 14, 0);
                 post.add(lamp);
 
-                // PointLights are expensive, so we only use them sparingly
-                if (z % 600 === 0) {
-                    const glow = new THREE.PointLight(track.color, 30, 60);
-                    glow.position.set(x > 0 ? -2 : 2, 11, 0);
+                if (z % 800 === 0) {
+                    const glow = new THREE.PointLight(track.color, 40, 80);
+                    glow.position.set(x > 0 ? -2 : 2, 13, 0);
                     post.add(glow);
                 }
             });
         }
 
-        // Flying Traffic (Very simple dots for perf)
-        for (let i = 0; i < 20; i++) {
-            const traffic = new THREE.Mesh(new THREE.SphereGeometry(1, 4, 4), new THREE.MeshBasicMaterial({ color: track.color }));
+        // Flying Traffic (Optimized)
+        for (let i = 0; i < 30; i++) {
+            const traffic = new THREE.Mesh(new THREE.SphereGeometry(1.5, 6, 6), new THREE.MeshBasicMaterial({ color: track.color }));
             const side = Math.random() > 0.5 ? 1 : -1;
-            const x = side * (100 + Math.random() * 200);
+            const x = side * (120 + Math.random() * 300);
             const z = -Math.random() * length;
-            traffic.position.set(x, 50 + Math.random() * 100, z);
+            traffic.position.set(x, 60 + Math.random() * 150, z);
             traffic.name = 'track_element';
-            traffic.userData = { speed: 100, zStart: z };
+            traffic.userData = { speed: 120 + Math.random() * 50, zStart: z };
             this.scene.add(traffic);
         }
 
