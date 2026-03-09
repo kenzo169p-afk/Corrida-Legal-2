@@ -200,40 +200,39 @@ const game = {
 
         console.log("Building high-performance optimized environment for:", track.name);
 
-        // --- OPTIMIZATION: Share Textures and Materials ---
-        if (!this.sharedAssets) {
-            const winCanvas = document.createElement('canvas');
-            winCanvas.width = 128; winCanvas.height = 128;
-            const wCtx = winCanvas.getContext('2d');
-            wCtx.fillStyle = '#050505'; wCtx.fillRect(0, 0, 128, 128);
-            const winColors = [0x0088ff, 0x00ccff, 0x00ffff, 0x4444ff]; // Diferentes tons de azul
-            for (let i = 0; i < 8; i++) {
-                for (let j = 0; j < 16; j++) {
-                    if (Math.random() > 0.3) {
-                        const c = winColors[Math.floor(Math.random() * winColors.length)];
-                        wCtx.globalAlpha = 1.0; wCtx.fillStyle = `#${c.toString(16).padStart(6, '0')}`;
-                        wCtx.fillRect(i * 16 + 2, j * 8 + 2, 12, 4);
-                    }
+        // --- OPTIMIZATION: Share Textures and Materials (Forced Refresh) ---
+        const winCanvas = document.createElement('canvas');
+        winCanvas.width = 128; winCanvas.height = 128;
+        const wCtx = winCanvas.getContext('2d');
+        wCtx.fillStyle = '#050505'; wCtx.fillRect(0, 0, 128, 128);
+        const winColors = [0x0088ff, 0x00ccff, 0x00ffff, 0x4444ff]; // Diferentes tons de azul
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 16; j++) {
+                if (Math.random() > 0.3) {
+                    const c = winColors[Math.floor(Math.random() * winColors.length)];
+                    wCtx.globalAlpha = 1.0; wCtx.fillStyle = `#${c.toString(16).padStart(6, '0')}`;
+                    wCtx.fillRect(i * 16 + 2, j * 8 + 2, 12, 4);
                 }
             }
-            const winTex = new THREE.CanvasTexture(winCanvas);
-            winTex.wrapS = winTex.wrapT = THREE.RepeatWrapping;
-
-            this.sharedAssets = {
-                winTex,
-                bodyMat: new THREE.MeshStandardMaterial({
-                    color: 0xffffff, // Base branca (era 0x1a1a1a)
-                    roughness: 0.5,
-                    metalness: 0.1,
-                    emissive: 0x222222, // Mais brilho base
-                    emissiveMap: winTex,
-                    emissiveIntensity: 2.5
-                }),
-                winMat: new THREE.MeshLambertMaterial({ map: winTex, emissive: 0xffffff, emissiveIntensity: 1.0, transparent: true, opacity: 0.9 })
-            };
-            this.sharedAssets.bodyMat.map = winTex; // Também aplica como textura de cor
-            winTex.repeat.set(2, 10); // Repete a textura para parecer janelas pequenas
         }
+        const winTex = new THREE.CanvasTexture(winCanvas);
+        winTex.wrapS = winTex.wrapT = THREE.RepeatWrapping;
+        winTex.repeat.set(2, 10);
+
+        this.sharedAssets = {
+            winTex,
+            bodyMat: new THREE.MeshStandardMaterial({
+                color: 0xffffff, // Base branca
+                roughness: 0.3,
+                metalness: 0.1,
+                emissive: 0x4444ff, // Brilho azul leve
+                emissiveMap: winTex,
+                emissiveIntensity: 3.5 // Janelas bem brilhantes
+            }),
+            winMat: new THREE.MeshLambertMaterial({ map: winTex, emissive: 0x00ffff, emissiveIntensity: 1.5, transparent: true, opacity: 0.9 })
+        };
+        this.sharedAssets.bodyMat.map = winTex;
+        this.sharedAssets.bodyMat.needsUpdate = true;
 
         // --- OPTIMIZATION: Instanced Mesh for Buildings ---
         const buildCount = 120;
@@ -273,9 +272,9 @@ const game = {
             // Prédios agora são apenas brancos
             instancedBuildings.setColorAt(i, new THREE.Color(0xffffff));
 
-            // Adiciona uma luz de ponto próxima a alguns prédios para iluminar a cena lateral
+            // Adiciona uma luz de ponto próxima a alguns prédios (Apenas Azul)
             if (i % 10 === 0) {
-                const bLight = new THREE.PointLight(trackColors[i % 4], 50, 150);
+                const bLight = new THREE.PointLight(0x0088ff, 60, 180);
                 bLight.position.set(x - (side * 20), h * 0.2, z);
                 this.scene.add(bLight);
             }
@@ -286,8 +285,8 @@ const game = {
             dummy.updateMatrix();
             instancedSpires.setMatrixAt(i, dummy.matrix);
 
-            // Neon strip
-            const neonMat = new THREE.MeshBasicMaterial({ color: trackColors[i % 4] });
+            // Neon strip (Apenas Azul)
+            const neonMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
             const neon = new THREE.Mesh(new THREE.BoxGeometry(1.5, h, 1.5), neonMat);
             neon.position.set(x + (w / 2 * side), h / 2 - 5, z);
             neon.name = 'track_element';
@@ -295,7 +294,7 @@ const game = {
 
             if (i % 15 === 0) {
                 const holoGeo = new THREE.PlaneGeometry(50, 40);
-                const holoMat = new THREE.MeshBasicMaterial({ color: trackColors[Math.floor(Math.random() * 4)], transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+                const holoMat = new THREE.MeshBasicMaterial({ color: 0x00ccff, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
                 const holo = new THREE.Mesh(holoGeo, holoMat);
                 holo.position.set(x - side * 50, h * 0.7, z);
                 holo.rotation.y = Math.PI / 2;
