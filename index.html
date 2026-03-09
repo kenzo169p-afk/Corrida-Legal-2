@@ -84,8 +84,9 @@
                     <span id="hud-timer" class="hud-value" style="font-family: monospace;">00:00.00</span>
                 </div>
                 <!-- Botão Voltar ao Menu durante a corrida -->
-                <button class="btn" style="margin: 0; padding: 5px 15px; font-size: 0.7rem; height: auto;"
-                    onclick="game.goToMenu()">ABANDONAR</button>
+                <button class="btn"
+                    style="margin: 0; padding: 5px 15px; font-size: 0.70rem; height: auto; pointer-events: auto !important; cursor: pointer !important; border: 2px solid white; z-index: 10000; position: relative;"
+                    onclick="if(window.game) window.game.goToMenu(); else alert('Erro: Jogo não carregado corretamente.');">ABANDONAR</button>
             </div>
         </div>
 
