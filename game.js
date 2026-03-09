@@ -220,18 +220,13 @@ const game = {
         winTex.repeat.set(2, 10);
 
         this.sharedAssets = {
-            winTex,
             bodyMat: new THREE.MeshStandardMaterial({
-                color: 0xffffff, // Base branca
-                roughness: 0.3,
-                metalness: 0.1,
-                emissive: 0x4444ff, // Brilho azul leve
-                emissiveMap: winTex,
-                emissiveIntensity: 3.5 // Janelas bem brilhantes
+                color: 0xffffff, // Prédio Branco Puro
+                roughness: 0.1,
+                metalness: 0.5
             }),
-            winMat: new THREE.MeshLambertMaterial({ map: winTex, emissive: 0x00ffff, emissiveIntensity: 1.5, transparent: true, opacity: 0.9 })
+            winMat: new THREE.MeshBasicMaterial({ color: 0x00f2ff }) // Janela Azul Neon
         };
-        this.sharedAssets.bodyMat.map = winTex;
         this.sharedAssets.bodyMat.needsUpdate = true;
 
         // --- OPTIMIZATION: Instanced Mesh for Buildings ---
@@ -246,9 +241,14 @@ const game = {
         const instancedTowers = new THREE.InstancedMesh(towerGeo, this.sharedAssets.bodyMat, towerCount);
         instancedTowers.name = 'track_element';
 
+        // --- NEW: 6 Windows per Building ---
+        const winGeo = new THREE.BoxGeometry(1, 1, 0.5);
+        const instancedWindows = new THREE.InstancedMesh(winGeo, this.sharedAssets.winMat, (buildCount + towerCount) * 6);
+        instancedWindows.name = 'track_element';
+
         // --- NEW: Antennas/Spires ---
         const spireGeo = new THREE.BoxGeometry(0.1, 1, 0.1);
-        const instancedSpires = new THREE.InstancedMesh(spireGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }), buildCount + towerCount);
+        const instancedSpires = new THREE.InstancedMesh(spireGeo, new THREE.MeshBasicMaterial({ color: 0x888888 }), buildCount + towerCount);
         instancedSpires.name = 'track_element';
 
         const dummy = new THREE.Object3D();
@@ -268,9 +268,22 @@ const game = {
             dummy.scale.set(w, h, d);
             dummy.updateMatrix();
             instancedBuildings.setMatrixAt(i, dummy.matrix);
-
-            // Prédios agora são apenas brancos
             instancedBuildings.setColorAt(i, new THREE.Color(0xffffff));
+
+            // Colocar 6 janelas azuis (3 linhas x 2 colunas) na frente de cada prédio
+            let winIdx = i * 6;
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 2; col++) {
+                    const winW = w * 0.25;
+                    const winH = h * 0.1;
+                    const posX = x + (col === 0 ? -w / 4 : w / 4);
+                    const posY = (h * 0.25) + (row * h * 0.25);
+                    dummy.position.set(posX, posY, z + d / 2 + 0.1); // Face frontal
+                    dummy.scale.set(winW, winH, 1);
+                    dummy.updateMatrix();
+                    instancedWindows.setMatrixAt(winIdx++, dummy.matrix);
+                }
+            }
 
             // Adiciona uma luz de ponto próxima a alguns prédios (Apenas Azul)
             if (i % 10 === 0) {
@@ -316,9 +329,20 @@ const game = {
             dummy.scale.set(radius, h, radius);
             dummy.updateMatrix();
             instancedTowers.setMatrixAt(i, dummy.matrix);
-
-            // Torres agora são apenas brancas
             instancedTowers.setColorAt(i, new THREE.Color(0xffffff));
+
+            // 6 janelas azuis na frente da torre
+            let towerWinIdx = (buildCount + i) * 6;
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 2; col++) {
+                    const posX = x + (col === 0 ? -radius / 3 : radius / 3);
+                    const posY = (h * 0.25) + (row * h * 0.25);
+                    dummy.position.set(posX, posY, z + radius + 0.1);
+                    dummy.scale.set(radius * 0.4, h * 0.08, 1);
+                    dummy.updateMatrix();
+                    instancedWindows.setMatrixAt(towerWinIdx++, dummy.matrix);
+                }
+            }
 
             // Spire for towers
             dummy.position.set(x, h, z);
@@ -351,6 +375,10 @@ const game = {
         instancedSpires.instanceMatrix.needsUpdate = true;
         instancedSpires.computeBoundingSphere();
         this.scene.add(instancedSpires);
+
+        instancedWindows.instanceMatrix.needsUpdate = true;
+        instancedWindows.computeBoundingSphere();
+        this.scene.add(instancedWindows);
 
         // Street Lights along the track
         for (let z = 0; z < length; z += 400) {
