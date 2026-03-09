@@ -222,12 +222,12 @@ const game = {
             this.sharedAssets = {
                 winTex,
                 bodyMat: new THREE.MeshStandardMaterial({
-                    color: 0x1a1a1a,
-                    roughness: 0.7,
-                    metalness: 0.2,
-                    emissive: 0x111111, // Brilho base para não ficar preto absoluto
-                    emissiveMap: winTex, // Usa a textura de janelas como luz
-                    emissiveIntensity: 2.0 // Intensidade do brilho das janelas
+                    color: 0xffffff, // Base branca (era 0x1a1a1a)
+                    roughness: 0.5,
+                    metalness: 0.1,
+                    emissive: 0x222222, // Mais brilho base
+                    emissiveMap: winTex,
+                    emissiveIntensity: 2.5
                 }),
                 winMat: new THREE.MeshLambertMaterial({ map: winTex, emissive: 0xffffff, emissiveIntensity: 1.0, transparent: true, opacity: 0.9 })
             };
@@ -269,6 +269,10 @@ const game = {
             dummy.scale.set(w, h, d);
             dummy.updateMatrix();
             instancedBuildings.setMatrixAt(i, dummy.matrix);
+
+            // Cor aleatória brilhante para o prédio
+            const randColor = new THREE.Color().setHSL(Math.random(), 0.7, 0.6);
+            instancedBuildings.setColorAt(i, randColor);
 
             // Adiciona uma luz de ponto próxima a alguns prédios para iluminar a cena lateral
             if (i % 10 === 0) {
@@ -314,6 +318,10 @@ const game = {
             dummy.scale.set(radius, h, radius);
             dummy.updateMatrix();
             instancedTowers.setMatrixAt(i, dummy.matrix);
+
+            // Cor aleatória brilhante para a torre (tons de azul/cyan/branco)
+            const towerColor = new THREE.Color().setHSL(0.5 + Math.random() * 0.2, 0.8, 0.7);
+            instancedTowers.setColorAt(i, towerColor);
 
             // Spire for towers
             dummy.position.set(x, h, z);
