@@ -14,6 +14,7 @@ const game = {
 
     // Game State
     isRunning: false,
+    isPaused: false,
     currentState: 'menu',
     playerCar: null,
     opponents: [],
@@ -1102,11 +1103,13 @@ const game = {
     },
 
 
-    startTimer() {
-        const start = Date.now();
-        this.startTime = start;
+    startTimer(reset = true) {
+        if (reset) {
+            this.startTime = Date.now();
+        }
+        
         this.timerInterval = setInterval(() => {
-            const delta = Date.now() - start;
+            const delta = Date.now() - this.startTime;
             const minutes = Math.floor(delta / 60000);
             const seconds = Math.floor((delta % 60000) / 1000);
             const ms = Math.floor((delta % 1000) / 10);
@@ -1116,7 +1119,7 @@ const game = {
     },
 
     update(delta) {
-        if (!this.isRunning) return;
+        if (!this.isRunning || this.isPaused) return;
 
         // Player Movement
         const effects = this.playerCar.effects;
@@ -1433,7 +1436,11 @@ const game = {
     goToMenu() {
         this.lap = 1;
         this.isRunning = false;
+        this.isPaused = false;
         this.currentState = 'menu';
+        
+        const btn = document.getElementById('btn-pause');
+        if (btn) btn.innerText = "PAUSAR";
 
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
@@ -1458,6 +1465,35 @@ const game = {
         document.getElementById('main-menu').classList.remove('hidden');
 
         economy.updateUI();
+    },
+    
+    togglePause() {
+        if (!this.isRunning) return;
+        this.isPaused = !this.isPaused;
+        
+        const btn = document.getElementById('btn-pause');
+        if (this.isPaused) {
+            if (btn) btn.innerText = "RETOMAR";
+            if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+            }
+        } else {
+            if (btn) btn.innerText = "PAUSAR";
+            // Retomar timer recalculando "startTime" subtraindo o tempo já decorrido para evitar saltos.
+            // Para ser simples e já que o text formatado do timer tem os mm:ss.ms
+            // Nós podemos adaptar salvando algo como:
+            // This could be improved, but for now we'll do a simple offset workaround
+            const timerTxt = document.getElementById('hud-timer').innerText;
+            const parts = timerTxt.match(/(\d+):(\d+)\.(\d+)/);
+            if (parts) {
+               const m = parseInt(parts[1], 10);
+               const s = parseInt(parts[2], 10);
+               const ms = parseInt(parts[3], 10);
+               const totalDelta = m * 60000 + s * 1000 + ms * 10;
+               this.startTime = Date.now() - totalDelta;
+               this.startTimer(false); // don't write new Date.now() to startTime
+            }
+        }
     },
 
     showCredits() {
