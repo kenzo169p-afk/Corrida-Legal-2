@@ -8,16 +8,17 @@ const economy = {
     inventory: JSON.parse(localStorage.getItem('turbo_inventory')) || [],
     availableUpgrades: [
         /* BUFFS */
-        { id: 'nitro_boost', name: 'Nitro +50%', type: 'buff', effect: { nitro: 1.5 }, color: '#00f2ff', desc: 'Aumento na potência do Nitro.' },
-        { id: 'super_accel', name: 'Super Accel', type: 'buff', effect: { accel: 1.3 }, color: '#00ff88', desc: 'Aceleração instantânea.' },
-        { id: 'heavy_car', name: 'Heavy Frame', type: 'buff', effect: { stability: 1.5, drift: 0.8 }, color: '#7000ff', desc: 'Mais estabilidade nas curvas.' },
-        { id: 'grip_tires', name: 'Grip Tires', type: 'buff', effect: { grip: 1.6 }, color: '#00f2ff', desc: 'Melhor aderência ao asfalto.' },
+        { id: 'nitro_boost', name: 'Nitro +50%', type: 'buff', effect: { nitro: 1.5 }, color: '#00f2ff', desc: 'Aumento na potência do Nitro.', chance: 12.275 },
+        { id: 'super_accel', name: 'Super Accel', type: 'buff', effect: { accel: 1.3 }, color: '#00ff88', desc: 'Aceleração instantânea.', chance: 12.275 },
+        { id: 'heavy_car', name: 'Heavy Frame', type: 'buff', effect: { stability: 1.5, drift: 0.8 }, color: '#7000ff', desc: 'Mais estabilidade nas curvas.', chance: 12.275 },
+        { id: 'grip_tires', name: 'Grip Tires', type: 'buff', effect: { grip: 1.6 }, color: '#00f2ff', desc: 'Melhor aderência ao asfalto.', chance: 12.275 },
+        { id: 'hyper_speed', name: 'VELOCIDADE LUZ', type: 'buff', effect: { maxSpeed: 1.99 }, color: '#fffb00', desc: 'RAREZA ULTRA LENDÁRIA! Limite de 1200 KM/H.', chance: 1.8 },
 
         /* DEBUFFS */
-        { id: 'brake_fail', name: 'Brake Fade', type: 'debuff', effect: { brake: 0.4 }, color: '#ff3333', desc: 'Freios perdem eficiência.' },
-        { id: 'bald_tires', name: 'Bald Tires', type: 'debuff', effect: { grip: 0.5, drift: 1.5 }, color: '#ff7700', desc: 'Pneus carecas (mais drift).' },
-        { id: 'overheat', name: 'Overheat', type: 'debuff', effect: { maxSpeed: 0.8 }, color: '#ff0055', desc: 'Motor superaquece, limita velocidade.' },
-        { id: 'loose_steering', name: 'Loose Steering', type: 'debuff', effect: { handling: 0.6 }, color: '#ffcc00', desc: 'Direção menos responsiva.' }
+        { id: 'brake_fail', name: 'Brake Fade', type: 'debuff', effect: { brake: 0.4 }, color: '#ff3333', desc: 'Freios perdem eficiência.', chance: 12.275 },
+        { id: 'bald_tires', name: 'Bald Tires', type: 'debuff', effect: { grip: 0.5, drift: 1.5 }, color: '#ff7700', desc: 'Pneus carecas (mais drift).', chance: 12.275 },
+        { id: 'overheat', name: 'Overheat', type: 'debuff', effect: { maxSpeed: 0.8 }, color: '#ff0055', desc: 'Motor superaquece, limita velocidade.', chance: 12.275 },
+        { id: 'loose_steering', name: 'Loose Steering', type: 'debuff', effect: { handling: 0.6 }, color: '#ffcc00', desc: 'Direção menos responsiva.', chance: 12.275 }
     ],
     availableSkins: [
         { id: 'default', name: 'Branco Firma', color: 0xeeeeee, cost: 0 },
@@ -223,9 +224,24 @@ const economy = {
 
         this.coins -= this.currentUpgradeCost;
 
-        // Select random upgrade or debuff
-        const randomIndex = Math.floor(Math.random() * this.availableUpgrades.length);
-        const upgrade = this.availableUpgrades[randomIndex];
+        // Select random upgrade using weighted chance
+        let totalChance = 0;
+        this.availableUpgrades.forEach(u => totalChance += u.chance);
+
+        let random = Math.random() * totalChance;
+        let upgrade = this.availableUpgrades[0]; // Default to first in case of rounding issues
+
+        for (const u of this.availableUpgrades) {
+            if (random < u.chance) {
+                upgrade = u;
+                break;
+            }
+            random -= u.chance;
+        }
+
+        if (upgrade.id === 'hyper_speed') {
+            alert('🚨 INCRÍVEL! Você desbloqueou a VELOCIDADE LUZ! (1.8% de chance)');
+        }
 
         // Add to inventory (can have duplicates or stack effects)
         this.inventory.push(upgrade);
