@@ -303,38 +303,51 @@ h2 {
 /* Battle Pass Custom CSS */
 .bp-row {
     display: grid;
-    grid-template-columns: 80px 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: 60px 1fr 1fr;
+    gap: 15px;
     background: rgba(255, 255, 255, 0.03);
-    margin-bottom: 5px;
-    border-radius: 8px;
+    margin-bottom: 8px;
+    border-radius: 12px;
     align-items: center;
-    min-height: 50px;
-    padding: 5px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.bp-row.unlocked {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 0, 255, 0.2);
 }
 
 .bp-level-tag {
     font-weight: 900;
-    font-size: 0.9rem;
+    font-size: 1.2rem;
     color: var(--primary);
     text-align: center;
+    text-shadow: 0 0 10px var(--primary);
 }
 
 .bp-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    padding: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 12px;
     height: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    transition: all 0.3s ease;
+    font-size: 0.8rem;
+    position: relative;
+    border: 1px solid transparent;
 }
 
-.bp-track.paid.active {
+.bp-track.claimed {
+    opacity: 0.6;
+    background: rgba(0, 255, 136, 0.05);
+    border-color: rgba(0, 255, 136, 0.2);
+}
+
+.bp-track.premium.active {
     background: rgba(255, 0, 255, 0.05);
-    border: 1px solid rgba(255, 0, 255, 0.2);
+    border-color: rgba(255, 0, 255, 0.2);
 }
 
 .bp-reward-item {
@@ -342,4 +355,28 @@ h2 {
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    gap: 10px;
+}
+
+.reward-name {
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.btn-ready {
+    background: var(--primary) !important;
+    box-shadow: 0 0 15px var(--primary);
+    color: black !important;
+}
+
+.btn-claimed {
+    background: rgba(0, 255, 136, 0.4) !important;
+    color: white !important;
+    cursor: default;
+}
+
+.btn-disabled {
+    opacity: 0.3;
+    pointer-events: none;
 }

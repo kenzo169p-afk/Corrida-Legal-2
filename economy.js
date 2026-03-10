@@ -79,6 +79,25 @@ const economy = {
     claimedFreeRewards: JSON.parse(localStorage.getItem('turbo_claimed_free')) || [],
     claimedPaidRewards: JSON.parse(localStorage.getItem('turbo_claimed_paid')) || [],
 
+    // Reward Data (Data-Driven System)
+    bpRewards: {
+        free: {
+            3: { type: 'skin', id: 'red_nitro', name: '🔴 Vermelho Nitro', icon: '🎨' },
+            9: { type: 'skin', id: 'blue_electric', name: '🔵 Azul Elétrico', icon: '🎨' },
+            15: { type: 'skin', id: 'green_krypton', name: '🟢 Verde Krypton', icon: '🎨' }
+        },
+        premium: {
+            1: { type: 'skin', id: 'orange_fire', name: '🔥 Laranja Fogo', icon: '🏆' },
+            5: { type: 'skin', id: 'taxi', name: '🚕 Táxi Perigoso', icon: '🚖' },
+            7: { type: 'skin', id: 'purple_galaxy', name: '🟣 Roxo Galáctico', icon: '🌌' },
+            10: { type: 'skin', id: 'police', name: '🚓 Rocam Fake', icon: '🚨' },
+            15: { type: 'skin', id: 'carbon', name: '🏁 Carbono Tech', icon: '⬛' },
+            20: { type: 'skin', id: 'neon', name: '💖 Neon Pink', icon: '✨' },
+            25: { type: 'skin', id: 'ferrari_f40', name: '🏎️ Ferrari F40', icon: '🏎️' },
+            30: { type: 'skin', id: 'bmw320i', name: '💎 BMW 320i', icon: '💎' }
+        }
+    },
+
     currentUpgradeCost: 0,
 
     init() {
@@ -446,23 +465,26 @@ const economy = {
         while (this.xp >= this.xpPerLevel) {
             this.xp -= this.xpPerLevel;
             this.bpLevel++;
-            console.log(`BATTLE PASS LEVEL UP! Now Level ${this.bpLevel}`);
+            console.log(`BATTLE PASS LEVEL UP! LVL ${this.bpLevel}`);
         }
         this.save();
-        this.updateBattlePassUI();
+        if (document.getElementById('battlepass-screen') && !document.getElementById('battlepass-screen').classList.contains('hidden')) {
+            this.updateBattlePassUI();
+        }
     },
 
     buyPaidPass() {
-        const PASS_COST = 1500;
+        const cost = 1500;
         if (this.hasPaidPass) return;
-        if (this.coins < PASS_COST) {
-            alert("Moedas insuficientes para o Passe Drift Premium!");
+        if (this.coins < cost) {
+            alert("Moedas insuficientes!");
             return;
         }
-        this.coins -= PASS_COST;
+        this.coins -= cost;
         this.hasPaidPass = true;
         this.save();
-        alert("BEM-VINDO AO PREMIUM! Recompensas exclusivas desbloqueadas.");
+        alert("BEM-VINDO AO PREMIUM! Aproveite suas recompensas exclusivas.");
+        this.updateBattlePassUI();
     },
 
     updateBattlePassUI() {
@@ -470,121 +492,108 @@ const economy = {
         if (!list) return;
         list.innerHTML = '';
 
+        // HUD XP/Level
         const xpBar = document.getElementById('bp-xp-bar');
         const levelNum = document.getElementById('bp-level-num');
         const xpText = document.getElementById('bp-xp-text');
-
         if (xpBar) xpBar.style.width = `${(this.xp / this.xpPerLevel) * 100}%`;
         if (levelNum) levelNum.innerText = this.bpLevel;
         if (xpText) xpText.innerText = `${this.xp}/${this.xpPerLevel} XP`;
 
-        // Reward definitions for the pass
-        const getRewardName = (lvl, track) => {
-            if (track === 'free') {
-                if (lvl === 3) return "🔴 Vermelho Nitro";
-                if (lvl === 9) return "🔵 Azul Elétrico";
-                if (lvl === 15) return "🟢 Verde Krypton";
-                if (lvl % 3 === 0) return "🎁 Buff Chaos";
-                return "-";
-            } else {
-                const skinRewards = { 1: '🔥 Laranja Fogo', 5: '🚕 Skin Taxi', 7: '🟣 Roxo Galáctico', 10: '🚓 Skin Rocam', 15: '🏁 Skin Carbono', 20: '💖 Skin Neon', 25: '🏎️ Ferrari F40', 30: '💎 BMW 320i' };
-                return skinRewards[lvl] || "150 🪙";
-            }
-        };
-
         for (let i = 1; i <= 30; i++) {
             const isUnlocked = this.bpLevel >= i;
-            const freeName = getRewardName(i, 'free');
-            const paidName = getRewardName(i, 'paid');
+            const freeReward = this.getBPRewardConfig(i, 'free');
+            const premiumReward = this.getBPRewardConfig(i, 'premium');
             
-            const isFreeClaimed = this.claimedFreeRewards.includes(i);
-            const isPaidClaimed = this.claimedPaidRewards.includes(i);
+            const freeClaimed = this.claimedFreeRewards.includes(i);
+            const paidClaimed = this.claimedPaidRewards.includes(i);
 
             const row = document.createElement('div');
-            row.className = 'bp-row';
-            row.style.opacity = isUnlocked ? '1' : '0.5';
-            row.style.borderLeft = isUnlocked ? '4px solid var(--primary)' : '4px solid #333';
-
+            row.className = `bp-row ${isUnlocked ? 'unlocked' : 'locked'}`;
+            
             row.innerHTML = `
-                <div class="bp-level-tag">LVL ${i}</div>
-                <div class="bp-track free">
-                    ${freeName !== '-' ? `
-                        <div class="bp-reward-item">
-                            <span>${freeName}</span>
-                            <button class="btn" style="padding: 2px 10px; font-size: 0.6rem; margin:0;" 
-                                ${(!isUnlocked || isFreeClaimed) ? 'disabled' : ''} 
-                                onclick="economy.claimBPReward(${i}, 'free')">
-                                ${isFreeClaimed ? 'OK' : 'PEGAR'}
-                            </button>
-                        </div>
-                    ` : '<span style="opacity:0.3">-</span>'}
+                <div class="bp-level-tag">${i}</div>
+                <div class="bp-track free ${freeClaimed ? 'claimed' : ''}">
+                    ${freeReward ? this.renderBPRewardItem(i, 'free', freeReward, isUnlocked, freeClaimed) : '<span style="opacity:0.2">-</span>'}
                 </div>
-                <div class="bp-track paid ${this.hasPaidPass ? 'active' : ''}">
-                    <div class="bp-reward-item">
-                        <span>${this.hasPaidPass ? paidName : '💠 LOCKED'}</span>
-                        <button class="btn" style="padding: 2px 10px; font-size: 0.6rem; margin:0;" 
-                            ${(!isUnlocked || !this.hasPaidPass || isPaidClaimed) ? 'disabled' : ''} 
-                            onclick="economy.claimBPReward(${i}, 'paid')">
-                            ${isPaidClaimed ? 'OK' : 'PEGAR'}
-                        </button>
-                    </div>
+                <div class="bp-track premium ${this.hasPaidPass ? 'active' : ''} ${paidClaimed ? 'claimed' : ''}">
+                    ${this.renderBPRewardItem(i, 'premium', premiumReward, isUnlocked && this.hasPaidPass, paidClaimed)}
                 </div>
             `;
             list.appendChild(row);
         }
     },
 
+    getBPRewardConfig(lvl, track) {
+        if (track === 'free') {
+            if (this.bpRewards.free[lvl]) return this.bpRewards.free[lvl];
+            if (lvl % 3 === 0) return { type: 'buff', name: '🎁 Buff Chaos', icon: '❓' };
+            return null;
+        } else {
+            if (this.bpRewards.premium[lvl]) return this.bpRewards.premium[lvl];
+            return { type: 'coins', amount: 150, name: '150 Moedas', icon: '🪙' };
+        }
+    },
+
+    renderBPRewardItem(lvl, track, config, canClaim, isClaimed) {
+        const label = config.icon ? `${config.icon} ${config.name}` : config.name;
+        const btnClass = isClaimed ? 'btn-claimed' : (canClaim ? 'btn-ready' : 'btn-disabled');
+        const btnText = isClaimed ? 'OK' : 'PEGAR';
+        
+        return `
+            <div class="bp-reward-item">
+                <span class="reward-name" style="font-size: 0.7rem; font-weight: bold;">${label}</span>
+                <button class="btn ${btnClass}" style="padding: 2px 8px; font-size: 0.55rem; margin:0;" 
+                    ${(!canClaim || isClaimed) ? 'disabled' : ''} 
+                    onclick="economy.claimBPReward(${lvl}, '${track}')">
+                    ${btnText}
+                </button>
+            </div>
+        `;
+    },
+
     claimBPReward(level, track) {
         if (this.bpLevel < level) return;
+        
+        const config = this.getBPRewardConfig(level, track);
+        if (!config) return;
 
-        if (track === 'free') {
-            if (level % 3 !== 0 || this.claimedFreeRewards.includes(level)) return;
-
-            const freeSkins = { 3: 'red_nitro', 9: 'blue_electric', 15: 'green_krypton' };
-            
-            if (freeSkins[level]) {
-                const skinId = freeSkins[level];
-                if (!this.unlockedSkins.includes(skinId)) {
-                    this.unlockedSkins.push(skinId);
-                    alert(`GRÁTIS: Você desbloqueou a skin ${skinId.toUpperCase()}!`);
-                } else {
-                    this.coins += 200;
-                    alert(`GRÁTIS: Você já tinha essa skin! +200 Moedas de bônus.`);
-                }
-            } else {
-                const randomIndex = Math.floor(Math.random() * this.availableUpgrades.length);
-                const upgrade = this.availableUpgrades[randomIndex];
-
-                if (this.inventory.length < 10) {
-                    this.inventory.push(upgrade);
-                    alert(`Recompensa Grátis Nível ${level}: Você ganhou ${upgrade.name}!`);
-                } else {
-                    this.coins += 50;
-                    alert(`Mochila cheia! Nível ${level}: 50 Moedas como compensação.`);
-                }
-            }
-            this.claimedFreeRewards.push(level);
-        } else {
-            if (!this.hasPaidPass || this.claimedPaidRewards.includes(level)) return;
-
-            const skinRewards = { 1: 'orange_fire', 5: 'taxi', 7: 'purple_galaxy', 10: 'police', 15: 'carbon', 20: 'neon', 25: 'ferrari_f40', 30: 'bmw320i' };
-            
-            if (skinRewards[level]) {
-                const skinId = skinRewards[level];
-                if (!this.unlockedSkins.includes(skinId)) {
-                    this.unlockedSkins.push(skinId);
-                    alert(`PREMIUM: Você desbloqueou a skin ${skinId.toUpperCase()}!`);
-                } else {
-                    this.coins += 500;
-                    alert(`PREMIUM: Você já tinha essa skin! +500 Moedas como compensação.`);
-                }
-            } else {
-                this.coins += 150;
-                alert(`PREMIUM Nível ${level}: +150 Moedas!`);
-            }
-            this.claimedPaidRewards.push(level);
+        if (track === 'premium' && !this.hasPaidPass) {
+            alert("Você precisa do Passe Premium!");
+            return;
         }
+
+        const claimedArray = track === 'free' ? this.claimedFreeRewards : this.claimedPaidRewards;
+        if (claimedArray.includes(level)) return;
+
+        // Process Reward Logic
+        if (config.type === 'skin') {
+            if (!this.unlockedSkins.includes(config.id)) {
+                this.unlockedSkins.push(config.id);
+                alert(`🎁 NOVA SKIN DESBLOQUEADA: ${config.name}!`);
+            } else {
+                const comp = (track === 'free') ? 200 : 500;
+                this.coins += comp;
+                alert(`Você já tinha essa skin! Recebeu +${comp} moedas de bônus.`);
+            }
+        } else if (config.type === 'coins') {
+            this.coins += config.amount;
+            alert(`💰 RECOMPENSA COLETADA: +${config.amount} moedas!`);
+        } else if (config.type === 'buff') {
+            const randomIndex = Math.floor(Math.random() * this.availableUpgrades.length);
+            const upgrade = this.availableUpgrades[randomIndex];
+            if (this.inventory.length < 10) {
+                this.inventory.push(upgrade);
+                alert(`⚡ BUFF CHAOS RECEBIDO: ${upgrade.name}!`);
+            } else {
+                this.coins += 50;
+                alert(`Inventário cheio! Recebeu +50 moedas.`);
+            }
+        }
+
+        claimedArray.push(level);
         this.save();
+        this.updateBattlePassUI();
     }
 };
 
