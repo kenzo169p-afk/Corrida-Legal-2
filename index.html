@@ -43,13 +43,13 @@
                 <p style="margin-bottom: 20px; text-align: center; opacity: 0.8;">🏁 Domine as pistas. Sobreviva ao
                     caos.</p>
                 <div style="display: flex; flex-direction: column; width: 300px;">
-                    <button class="btn primary" onclick="game.startRace()">INICIAR CORRIDA</button>
-                    <button class="btn" onclick="game.showShop()">THE CHAOS SHOP</button>
+                    <button class="btn primary" onclick="window.game.startRace()">INICIAR CORRIDA</button>
+                    <button class="btn" onclick="window.game.showShop()">THE CHAOS SHOP</button>
                     <button class="btn" style="border-color: #ffcc00; color: #ffcc00;"
-                        onclick="game.showSkins()">GARAGEM DE SKINS</button>
+                        onclick="window.game.showSkins()">GARAGEM DE SKINS</button>
                     <button class="btn" style="border-color: #00ff88; color: #00ff88;"
-                        onclick="game.showObjectives()">OBJETIVOS</button>
-                    <button class="btn" style="font-size: 0.8rem;" onclick="game.showCredits()">CRÉDITOS</button>
+                        onclick="window.game.showObjectives()">OBJETIVOS</button>
+                    <button class="btn" style="font-size: 0.8rem;" onclick="window.game.showCredits()">CRÉDITOS</button>
 
                 </div>
                 <div style="margin-top: 20px; text-align: center;">
@@ -89,13 +89,13 @@
             </div>
 
             <!-- Controles (Top Right) -->
-            <div style="display: flex; gap: 10px; position: fixed; top: 20px; right: 20px; z-index: 10001;">
+            <div style="display: flex; gap: 10px; position: fixed; top: 20px; right: 20px; z-index: 10001; pointer-events: auto;">
                 <button id="btn-pause" class="btn"
-                    style="margin: 0; padding: 8px 20px; font-size: 0.8rem; background: rgba(0,0,0,0.6); border: 2px solid white; cursor: pointer; pointer-events: auto;"
-                    onclick="game.togglePause()">PAUSAR</button>
+                    style="margin: 0; padding: 8px 20px; font-size: 0.8rem; background: rgba(0,0,0,0.6); border: 2px solid white; cursor: pointer;"
+                    onclick="if(window.game) window.game.togglePause()">PAUSAR</button>
                 <button class="btn"
-                    style="margin: 0; padding: 8px 20px; font-size: 0.8rem; background: rgba(255,50,50,0.2); border: 2px solid #ff3333; color: #ff3333; cursor: pointer; pointer-events: auto;"
-                    onclick="if(confirm('Deseja realmente abandonar a corrida?')) game.goToMenu()">ABANDONAR</button>
+                    style="margin: 0; padding: 8px 20px; font-size: 0.8rem; background: rgba(255,50,50,0.4); border: 2px solid #ff3333; color: white; cursor: pointer;"
+                    onclick="if(window.game && confirm('Deseja realmente abandonar a corrida?')) window.game.goToMenu()">ABANDONAR</button>
             </div>
 
             <!-- Objetivos de Tempo -->
@@ -184,8 +184,8 @@
                     <span class="hud-label">Suas Moedas:</span>
                     <span id="shop-coins" class="hud-value" style="color: var(--success);">0</span>
                     <br><br>
-                    <button class="btn" onclick="game.hideShop()">VOLTAR AO MENU</button>
-                    <button class="btn primary" onclick="game.startRace()">CORRER AGORA</button>
+                    <button class="btn" onclick="window.game.hideShop()">VOLTAR AO MENU</button>
+                    <button class="btn primary" onclick="window.game.startRace()">CORRER AGORA</button>
                 </div>
             </div>
         </div>
@@ -205,8 +205,8 @@
                     <span class="hud-label">Suas Moedas:</span>
                     <span id="skin-coins" class="hud-value" style="color: var(--success);">0</span>
                     <br><br>
-                    <button class="btn" onclick="game.hideSkins()">VOLTAR AO MENU</button>
-                    <button class="btn primary" id="skin-main-btn" onclick="game.startRace()">CORRER AGORA</button>
+                    <button class="btn" onclick="window.game.hideSkins()">VOLTAR AO MENU</button>
+                    <button class="btn primary" id="skin-main-btn" onclick="window.game.startRace()">CORRER AGORA</button>
                 </div>
             </div>
         </div>
@@ -231,7 +231,7 @@
                 </div>
 
                 <div style="text-align: center;">
-                    <button class="btn" onclick="game.hideObjectives()">VOLTAR AO MENU</button>
+                    <button class="btn" onclick="window.game.hideObjectives()">VOLTAR AO MENU</button>
                 </div>
             </div>
         </div>
@@ -247,7 +247,7 @@
                         Nicolas Kenzo Kawakami Goya
                     </p>
                 </div>
-                <button class="btn" onclick="game.hideCredits()">VOLTAR AO MENU</button>
+                <button class="btn" onclick="window.game.hideCredits()">VOLTAR AO MENU</button>
             </div>
         </div>
 
@@ -272,11 +272,12 @@
                 </table>
 
                 <div style="text-align: center; margin-top: 30px;">
-                    <button class="btn primary" onclick="game.goToMenu()">VOLTAR AO MENU</button>
-                    <button class="btn" onclick="game.showShop()">MAIS UPGRADES</button>
+                    <button class="btn primary" onclick="window.game.goToMenu()">VOLTAR AO MENU</button>
+                    <button class="btn" onclick="window.game.showShop()">MAIS UPGRADES</button>
                 </div>
             </div>
         </div>
+    </div>
 
         <!-- Game Scripts -->
         <script src="economy.js"></script>

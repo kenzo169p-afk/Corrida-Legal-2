@@ -1053,56 +1053,77 @@ const game = {
     },
 
     startRace() {
-        this.currentState = 'race';
-        this.isRunning = true;
+        console.log("Starting race...");
+        try {
+            this.currentState = 'race';
+            this.isRunning = true;
 
-        // Play Background Music (Lo-Fi)
-        const music = document.getElementById('bg-music');
-        if (music) {
-            music.volume = 0.4; // Lofi volume suave
-            music.play().catch(e => console.log("Music autoplay blocked, waiting for interaction."));
+            // Play Background Music (Lo-Fi)
+            const music = document.getElementById('bg-music');
+            if (music) {
+                music.volume = 0.4;
+                music.play().catch(e => console.log("Music blocked: ", e));
+            }
+
+            // Re-create player car
+            if (this.playerCar) {
+                this.scene.remove(this.playerCar.mesh);
+            }
+            this.createPlayerCar();
+
+            // Load Economy Effects
+            if (typeof economy !== 'undefined') {
+                this.playerCar.effects = economy.getCombinedEffects() || this.playerCar.effects;
+            }
+
+            // Update Time Objectives UI
+            try {
+                const currentTrack = this.tracks[this.currentTrackIndex];
+                const formatTime = (sec) => {
+                    const m = Math.floor(sec / 60).toString().padStart(2, '0');
+                    const s = (sec % 60).toString().padStart(2, '0');
+                    return `${m}:${s}.00`;
+                };
+                const objGold = document.getElementById('obj-gold');
+                if (objGold) {
+                    objGold.innerText = formatTime(currentTrack.times.gold);
+                    document.getElementById('obj-silver').innerText = formatTime(currentTrack.times.silver);
+                    document.getElementById('obj-bronze').innerText = formatTime(currentTrack.times.bronze);
+                }
+            } catch (uiErr) {
+                console.warn("Could not update timer objectives UI:", uiErr);
+            }
+
+            // UI transitions
+            const screenIds = ['main-menu', 'shop-screen', 'skin-screen', 'credits-screen', 'results-screen', 'objective-screen'];
+            screenIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+
+            const hud = document.getElementById('hud');
+            if (hud) hud.classList.remove('hidden');
+            const hudSpeed = document.getElementById('hud-speed');
+            if (hudSpeed) hudSpeed.classList.remove('hidden');
+
+            // Reset Car State
+            this.playerCar.speed = 0;
+            this.playerCar.zPos = 0;
+            this.playerCar.xPos = 0;
+            this.playerCar.lap = 1; // Reseta voltas ao iniciar
+            if (this.playerCar.mesh) {
+                this.playerCar.mesh.position.set(0, 1, 0);
+            }
+
+            this.createOpponents();
+            this.nitroLevel = this.MAX_NITRO;
+            this.startTimer();
+            console.log("Race started successfully.");
+        } catch (err) {
+            console.error("CRITICAL ERROR IN startRace:", err);
+            alert("Erro ao iniciar corrida! Verifique o console.");
+            this.goToMenu();
         }
-
-        // Re-create player car with current skin
-        if (this.playerCar) {
-            this.scene.remove(this.playerCar.mesh);
-        }
-        this.createPlayerCar();
-
-        // Load Economy Effects
-        this.playerCar.effects = economy.getCombinedEffects();
-
-        // Update Time Objectives UI
-        const currentTrack = this.tracks[this.currentTrackIndex];
-        const formatTime = (sec) => {
-            const m = Math.floor(sec / 60).toString().padStart(2, '0');
-            const s = (sec % 60).toString().padStart(2, '0');
-            return `${m}:${s}.00`;
-        };
-        if (document.getElementById('obj-gold')) {
-            document.getElementById('obj-gold').innerText = formatTime(currentTrack.times.gold);
-            document.getElementById('obj-silver').innerText = formatTime(currentTrack.times.silver);
-            document.getElementById('obj-bronze').innerText = formatTime(currentTrack.times.bronze);
-        }
-
-        // UI transitions
-        document.getElementById('main-menu').classList.add('hidden');
-        document.getElementById('shop-screen').classList.add('hidden');
-        document.getElementById('skin-screen').classList.add('hidden');
-        document.getElementById('credits-screen').classList.add('hidden');
-        document.getElementById('results-screen').classList.add('hidden');
-        document.getElementById('hud').classList.remove('hidden');
-        document.getElementById('hud-speed').classList.remove('hidden');
-
-        // Reset Car State
-        this.playerCar.speed = 0;
-        this.playerCar.zPos = 0;
-        this.playerCar.xPos = 0;
-        this.playerCar.mesh.position.set(0, 1, 0);
-
-        this.createOpponents();
-        this.nitroLevel = this.MAX_NITRO; // Reset Nitro
-        this.startTimer();
     },
 
 
