@@ -1024,11 +1024,14 @@ const game = {
             this.opponents.push({
                 mesh: oppGroup,
                 speed: 0,
-                targetSpeed: (160 + Math.random() * 50) * 2.31, // +10% em relação ao anterior
-                accel: (25 + Math.random() * 15) * 2.31,       // +10%
+                targetSpeed: (160 + Math.random() * 50) * 2.31,
+                accel: (25 + Math.random() * 15) * 2.31,
                 xPos: x,
                 zPos: z,
-                lap: 1 // Start at lap 1 like player
+                targetX: x,
+                sideSpeed: 10 + Math.random() * 15,
+                laneTimer: Math.random() * 2,
+                lap: 1
             });
             this.scene.add(oppGroup);
         }
@@ -1255,6 +1258,23 @@ const game = {
 
             opp.zPos -= opp.speed * delta;
 
+            // IA: Movimentação Lateral
+            opp.laneTimer -= delta;
+            if (opp.laneTimer <= 0) {
+                opp.targetX = (Math.random() - 0.5) * 52; // Range da pista
+                opp.laneTimer = 3 + Math.random() * 5;
+            }
+
+            const dx = opp.targetX - opp.xPos;
+            if (Math.abs(dx) > 0.5) {
+                const moveAmount = opp.sideSpeed * delta;
+                const step = Math.sign(dx) * Math.min(Math.abs(dx), moveAmount);
+                opp.xPos += step;
+                opp.mesh.rotation.y = Math.sign(dx) * 0.1; // Inclina para o lado que está indo
+            } else {
+                opp.mesh.rotation.y = 0;
+            }
+
             // Bot Lap Logic
             if (Math.abs(opp.zPos) >= trackLength) {
                 opp.zPos = 0;
@@ -1262,6 +1282,7 @@ const game = {
             }
 
             opp.mesh.position.z = opp.zPos;
+            opp.mesh.position.x = opp.xPos;
 
             // Basic Collision Check
             const dist = this.playerCar.mesh.position.distanceTo(opp.mesh.position);
