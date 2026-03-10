@@ -462,6 +462,63 @@ const game = {
         return unoGroup;
     },
 
+    createTeamSkin(teamId, color) {
+        // Base is the Fiat Uno with the team's primary color
+        const teamGroup = this.createFiatUno(color);
+        
+        // Add a giant flag/badge to the roof
+        const flagGeo = new THREE.PlaneGeometry(3, 2);
+        let flagColor1, flagColor2, flagColor3;
+        
+        switch (teamId) {
+            case 'corinthians':
+                flagColor1 = 0xffffff; flagColor2 = 0x000000; flagColor3 = 0xffffff;
+                break;
+            case 'palmeiras':
+                flagColor1 = 0x008000; flagColor2 = 0xffffff; flagColor3 = 0x008000;
+                break;
+            case 'saopaulo':
+                flagColor1 = 0xff0000; flagColor2 = 0xffffff; flagColor3 = 0x000000;
+                break;
+            case 'santos':
+                flagColor1 = 0xffffff; flagColor2 = 0x000000; flagColor3 = 0xffffff;
+                break;
+            default:
+                flagColor1 = 0xffffff; flagColor2 = 0xffffff; flagColor3 = 0xffffff;
+        }
+
+        // Create a custom striped material using Canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        
+        // Convert hex to rgb strings
+        const hexToRgb = (hex) => `rgb(${(hex >> 16) & 255}, ${(hex >> 8) & 255}, ${hex & 255})`;
+        
+        ctx.fillStyle = hexToRgb(flagColor1);
+        ctx.fillRect(0, 0, 85, 256);
+        ctx.fillStyle = hexToRgb(flagColor2);
+        ctx.fillRect(85, 0, 85, 256);
+        ctx.fillStyle = hexToRgb(flagColor3);
+        ctx.fillRect(170, 0, 86, 256);
+        
+        const tex = new THREE.CanvasTexture(canvas);
+        const flagMat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
+        
+        const flag = new THREE.Mesh(flagGeo, flagMat);
+        flag.position.set(0, 4.5, -0.4); // Placed on top of the ladder
+        
+        // Flag pole
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2), new THREE.MeshStandardMaterial({color: 0xcccccc}));
+        pole.position.set(-1.4, 3.5, -0.4);
+        
+        teamGroup.add(flag);
+        teamGroup.add(pole);
+        
+        return teamGroup;
+    },
+
     createDogeRam(color) {
         console.log("Creating Doge Ram Pickup...");
         const ramGroup = new THREE.Group();
@@ -910,6 +967,8 @@ const game = {
             carGroup = this.createMcQueen();
         } else if (selectedId === 'ferrari_f40') {
             carGroup = this.createFerrariF40(skinColor);
+        } else if (selectedId === 'corinthians' || selectedId === 'palmeiras' || selectedId === 'saopaulo' || selectedId === 'santos') {
+            carGroup = this.createTeamSkin(selectedId, skinColor);
         } else {
             carGroup = this.createFiatUno(skinColor);
         }
