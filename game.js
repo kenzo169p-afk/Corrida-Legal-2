@@ -1023,8 +1023,8 @@ const game = {
             this.opponents.push({
                 mesh: oppGroup,
                 speed: 0,
-                targetSpeed: (160 + Math.random() * 50) * 2.1, // Mais 30% (1.6 * 1.3 ≈ 2.1)
-                accel: (25 + Math.random() * 15) * 2.1,       // Mais 30%
+                targetSpeed: (160 + Math.random() * 50) * 2.31, // +10% em relação ao anterior
+                accel: (25 + Math.random() * 15) * 2.31,       // +10%
                 xPos: x,
                 zPos: z,
                 lap: 1 // Start at lap 1 like player
