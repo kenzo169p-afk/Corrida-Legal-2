@@ -299,3 +299,47 @@ h2 {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--secondary);
 }
+
+/* Battle Pass Custom CSS */
+.bp-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    margin-bottom: 5px;
+    border-radius: 8px;
+    align-items: center;
+    min-height: 50px;
+    padding: 5px;
+}
+
+.bp-level-tag {
+    font-weight: 900;
+    font-size: 0.9rem;
+    color: var(--primary);
+    text-align: center;
+}
+
+.bp-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    padding: 8px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.bp-track.paid.active {
+    background: rgba(255, 0, 255, 0.05);
+    border: 1px solid rgba(255, 0, 255, 0.2);
+}
+
+.bp-reward-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}

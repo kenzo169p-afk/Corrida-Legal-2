@@ -64,6 +64,14 @@ const economy = {
         { id: 'daily_5', name: 'Trabalho Pesado', desc: 'Complete 5 corridas HOJE.', target: 5, rewardType: 'coins', reward: 800, claimed: JSON.parse(localStorage.getItem('turbo_obj_daily_5')) || false }
     ],
 
+    // Battle Pass System
+    xp: parseInt(localStorage.getItem('turbo_xp')) || 0,
+    bpLevel: parseInt(localStorage.getItem('turbo_bp_level')) || 1,
+    hasPaidPass: JSON.parse(localStorage.getItem('turbo_has_paid_pass')) || false,
+    xpPerLevel: 300,
+    claimedFreeRewards: JSON.parse(localStorage.getItem('turbo_claimed_free')) || [],
+    claimedPaidRewards: JSON.parse(localStorage.getItem('turbo_claimed_paid')) || [],
+    
     currentUpgradeCost: 0,
 
     init() {
@@ -103,6 +111,11 @@ const economy = {
         localStorage.setItem('turbo_daily_races', this.dailyRaces);
         localStorage.setItem('turbo_last_daily_date', this.lastDailyDate);
         localStorage.setItem('turbo_total_coins', this.totalCoinsEarned);
+        localStorage.setItem('turbo_xp', this.xp);
+        localStorage.setItem('turbo_bp_level', this.bpLevel);
+        localStorage.setItem('turbo_has_paid_pass', this.hasPaidPass);
+        localStorage.setItem('turbo_claimed_free', JSON.stringify(this.claimedFreeRewards));
+        localStorage.setItem('turbo_claimed_paid', JSON.stringify(this.claimedPaidRewards));
         
         // Save objectives status
         this.objectives.forEach(obj => {
@@ -418,6 +431,120 @@ const economy = {
             this.selectedTitle = newTitle;
             this.save();
         }
+    },
+
+    // --- Battle Pass Methods ---
+    addXP(amount) {
+        this.xp += amount;
+        while (this.xp >= this.xpPerLevel) {
+            this.xp -= this.xpPerLevel;
+            this.bpLevel++;
+            console.log(`BATTLE PASS LEVEL UP! Now Level ${this.bpLevel}`);
+        }
+        this.save();
+        this.updateBattlePassUI();
+    },
+
+    buyPaidPass() {
+        const PASS_COST = 1500;
+        if (this.hasPaidPass) return;
+        if (this.coins < PASS_COST) {
+            alert("Moedas insuficientes para o Passe Drift Premium!");
+            return;
+        }
+        this.coins -= PASS_COST;
+        this.hasPaidPass = true;
+        this.save();
+        alert("BEM-VINDO AO PREMIUM! Recompensas exclusivas desbloqueadas.");
+    },
+
+    updateBattlePassUI() {
+        const list = document.getElementById('bp-list');
+        if (!list) return;
+        list.innerHTML = '';
+
+        const xpBar = document.getElementById('bp-xp-bar');
+        const levelNum = document.getElementById('bp-level-num');
+        const xpText = document.getElementById('bp-xp-text');
+        
+        if (xpBar) xpBar.style.width = `${(this.xp / this.xpPerLevel) * 100}%`;
+        if (levelNum) levelNum.innerText = this.bpLevel;
+        if (xpText) xpText.innerText = `${this.xp}/${this.xpPerLevel} XP`;
+
+        // Render levels 1 to 30
+        for (let i = 1; i <= 30; i++) {
+            const isUnlocked = this.bpLevel >= i;
+            const hasFreeReward = i % 3 === 0;
+            const hasPaidReward = true; // Premium tem recompensa em todo level
+            
+            const isFreeClaimed = this.claimedFreeRewards.includes(i);
+            const isPaidClaimed = this.claimedPaidRewards.includes(i);
+
+            const row = document.createElement('div');
+            row.className = 'bp-row';
+            row.style.opacity = isUnlocked ? '1' : '0.5';
+            row.style.borderLeft = isUnlocked ? '4px solid var(--primary)' : '4px solid #333';
+            
+            row.innerHTML = `
+                <div class="bp-level-tag">LVL ${i}</div>
+                <div class="bp-track free">
+                    ${hasFreeReward ? `
+                        <div class="bp-reward-item">
+                            <span>🎁 Buff Aleatório</span>
+                            <button class="btn" style="padding: 2px 10px; font-size: 0.6rem; margin:0;" 
+                                ${(!isUnlocked || isFreeClaimed) ? 'disabled' : ''} 
+                                onclick="economy.claimBPReward(${i}, 'free')">
+                                ${isFreeClaimed ? 'OK' : 'PEGAR'}
+                            </button>
+                        </div>
+                    ` : '<span style="opacity:0.3">-</span>'}
+                </div>
+                <div class="bp-track paid ${this.hasPaidPass ? 'active' : ''}">
+                    <div class="bp-reward-item">
+                        <span>💠 ${i % 5 === 0 ? 'Pintura Especial' : '100 🪙'}</span>
+                        <button class="btn" style="padding: 2px 10px; font-size: 0.6rem; margin:0;" 
+                            ${(!isUnlocked || !this.hasPaidPass || isPaidClaimed) ? 'disabled' : ''} 
+                            onclick="economy.claimBPReward(${i}, 'paid')">
+                            ${isPaidClaimed ? 'OK' : 'PEGAR'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            list.appendChild(row);
+        }
+    },
+
+    claimBPReward(level, track) {
+        if (this.bpLevel < level) return;
+        
+        if (track === 'free') {
+            if (level % 3 !== 0 || this.claimedFreeRewards.includes(level)) return;
+            
+            // Give Random Buff
+            const randomIndex = Math.floor(Math.random() * this.availableUpgrades.length);
+            const upgrade = this.availableUpgrades[randomIndex];
+            
+            if (this.inventory.length < 10) {
+                this.inventory.push(upgrade);
+                alert(`Recompensa Free: Você ganhou ${upgrade.name}!`);
+            } else {
+                this.coins += 50;
+                alert(`Mochila cheia! Você ganhou 50 Moedas em vez do buff.`);
+            }
+            this.claimedFreeRewards.push(level);
+        } else {
+            if (!this.hasPaidPass || this.claimedPaidRewards.includes(level)) return;
+            
+            if (level % 5 === 0) {
+                this.coins += 500;
+                alert(`Recompensa Premium: Super Bônus de 500 Moedas!`);
+            } else {
+                this.coins += 100;
+                alert(`Recompensa Premium: +100 Moedas!`);
+            }
+            this.claimedPaidRewards.push(level);
+        }
+        this.save();
     }
 };
 
