@@ -35,6 +35,13 @@ const economy = {
         { id: 'bmw320i', name: 'BMW 320i M-Sport', color: 0x3366ff, cost: 2000 },
         { id: 'batmobile', name: 'Batmovel (Legendário)', color: 0x111111, cost: 10000 },
         { id: 'mcqueen', name: 'Relâmpago Marquinhos', color: 0xff0000, cost: 24000 },
+        { id: 'red_nitro', name: 'Vermelho Nitro', color: 0xff3333, cost: 150 },
+        { id: 'blue_electric', name: 'Azul Elétrico', color: 0x3366ff, cost: 150 },
+        { id: 'green_krypton', name: 'Verde Krypton', color: 0x33ff33, cost: 150 },
+        { id: 'purple_galaxy', name: 'Roxo Galáctico', color: 0x9933ff, cost: 200 },
+        { id: 'orange_fire', name: 'Laranja Fogo', color: 0xff6600, cost: 200 },
+        { id: 'silver_cyber', name: 'Silver Cyber', color: 0xcccccc, cost: 200 },
+        { id: 'black_midnight', name: 'Black Midnight', color: 0x0a0a0a, cost: 250 },
         { id: 'the_cube', name: 'O Quadrado Supremo', color: 0xffffff, cost: 1000000000 }
     ],
     unlockedSkins: JSON.parse(localStorage.getItem('turbo_skins_unlocked')) || ['default'],
@@ -71,7 +78,7 @@ const economy = {
     xpPerLevel: 300,
     claimedFreeRewards: JSON.parse(localStorage.getItem('turbo_claimed_free')) || [],
     claimedPaidRewards: JSON.parse(localStorage.getItem('turbo_claimed_paid')) || [],
-    
+
     currentUpgradeCost: 0,
 
     init() {
@@ -116,7 +123,7 @@ const economy = {
         localStorage.setItem('turbo_has_paid_pass', this.hasPaidPass);
         localStorage.setItem('turbo_claimed_free', JSON.stringify(this.claimedFreeRewards));
         localStorage.setItem('turbo_claimed_paid', JSON.stringify(this.claimedPaidRewards));
-        
+
         // Save objectives status
         this.objectives.forEach(obj => {
             localStorage.setItem(`turbo_obj_${obj.id}`, obj.claimed);
@@ -411,7 +418,7 @@ const economy = {
         if (!obj || obj.claimed || currentProgress < obj.target) return;
 
         obj.claimed = true;
-        
+
         if (obj.rewardType === 'coins') {
             this.coins += obj.reward;
             alert(`Recompensa Diária: +${obj.reward} moedas!`);
@@ -466,16 +473,29 @@ const economy = {
         const xpBar = document.getElementById('bp-xp-bar');
         const levelNum = document.getElementById('bp-level-num');
         const xpText = document.getElementById('bp-xp-text');
-        
+
         if (xpBar) xpBar.style.width = `${(this.xp / this.xpPerLevel) * 100}%`;
         if (levelNum) levelNum.innerText = this.bpLevel;
         if (xpText) xpText.innerText = `${this.xp}/${this.xpPerLevel} XP`;
 
-        // Render levels 1 to 30
+        // Reward definitions for the pass
+        const getRewardName = (lvl, track) => {
+            if (track === 'free') {
+                if (lvl === 3) return "🔴 Vermelho Nitro";
+                if (lvl === 9) return "🔵 Azul Elétrico";
+                if (lvl === 15) return "🟢 Verde Krypton";
+                if (lvl % 3 === 0) return "🎁 Buff Chaos";
+                return "-";
+            } else {
+                const skinRewards = { 1: '🔥 Laranja Fogo', 5: '🚕 Skin Taxi', 7: '🟣 Roxo Galáctico', 10: '🚓 Skin Rocam', 15: '🏁 Skin Carbono', 20: '💖 Skin Neon', 25: '🏎️ Ferrari F40', 30: '💎 BMW 320i' };
+                return skinRewards[lvl] || "150 🪙";
+            }
+        };
+
         for (let i = 1; i <= 30; i++) {
             const isUnlocked = this.bpLevel >= i;
-            const hasFreeReward = i % 3 === 0;
-            const hasPaidReward = true; // Premium tem recompensa em todo level
+            const freeName = getRewardName(i, 'free');
+            const paidName = getRewardName(i, 'paid');
             
             const isFreeClaimed = this.claimedFreeRewards.includes(i);
             const isPaidClaimed = this.claimedPaidRewards.includes(i);
@@ -484,13 +504,13 @@ const economy = {
             row.className = 'bp-row';
             row.style.opacity = isUnlocked ? '1' : '0.5';
             row.style.borderLeft = isUnlocked ? '4px solid var(--primary)' : '4px solid #333';
-            
+
             row.innerHTML = `
                 <div class="bp-level-tag">LVL ${i}</div>
                 <div class="bp-track free">
-                    ${hasFreeReward ? `
+                    ${freeName !== '-' ? `
                         <div class="bp-reward-item">
-                            <span>🎁 Buff Aleatório</span>
+                            <span>${freeName}</span>
                             <button class="btn" style="padding: 2px 10px; font-size: 0.6rem; margin:0;" 
                                 ${(!isUnlocked || isFreeClaimed) ? 'disabled' : ''} 
                                 onclick="economy.claimBPReward(${i}, 'free')">
@@ -501,7 +521,7 @@ const economy = {
                 </div>
                 <div class="bp-track paid ${this.hasPaidPass ? 'active' : ''}">
                     <div class="bp-reward-item">
-                        <span>💠 ${i % 5 === 0 ? 'Pintura Especial' : '100 🪙'}</span>
+                        <span>${this.hasPaidPass ? paidName : '💠 LOCKED'}</span>
                         <button class="btn" style="padding: 2px 10px; font-size: 0.6rem; margin:0;" 
                             ${(!isUnlocked || !this.hasPaidPass || isPaidClaimed) ? 'disabled' : ''} 
                             onclick="economy.claimBPReward(${i}, 'paid')">
@@ -516,31 +536,51 @@ const economy = {
 
     claimBPReward(level, track) {
         if (this.bpLevel < level) return;
-        
+
         if (track === 'free') {
             if (level % 3 !== 0 || this.claimedFreeRewards.includes(level)) return;
+
+            const freeSkins = { 3: 'red_nitro', 9: 'blue_electric', 15: 'green_krypton' };
             
-            // Give Random Buff
-            const randomIndex = Math.floor(Math.random() * this.availableUpgrades.length);
-            const upgrade = this.availableUpgrades[randomIndex];
-            
-            if (this.inventory.length < 10) {
-                this.inventory.push(upgrade);
-                alert(`Recompensa Free: Você ganhou ${upgrade.name}!`);
+            if (freeSkins[level]) {
+                const skinId = freeSkins[level];
+                if (!this.unlockedSkins.includes(skinId)) {
+                    this.unlockedSkins.push(skinId);
+                    alert(`GRÁTIS: Você desbloqueou a skin ${skinId.toUpperCase()}!`);
+                } else {
+                    this.coins += 200;
+                    alert(`GRÁTIS: Você já tinha essa skin! +200 Moedas de bônus.`);
+                }
             } else {
-                this.coins += 50;
-                alert(`Mochila cheia! Você ganhou 50 Moedas em vez do buff.`);
+                const randomIndex = Math.floor(Math.random() * this.availableUpgrades.length);
+                const upgrade = this.availableUpgrades[randomIndex];
+
+                if (this.inventory.length < 10) {
+                    this.inventory.push(upgrade);
+                    alert(`Recompensa Grátis Nível ${level}: Você ganhou ${upgrade.name}!`);
+                } else {
+                    this.coins += 50;
+                    alert(`Mochila cheia! Nível ${level}: 50 Moedas como compensação.`);
+                }
             }
             this.claimedFreeRewards.push(level);
         } else {
             if (!this.hasPaidPass || this.claimedPaidRewards.includes(level)) return;
+
+            const skinRewards = { 1: 'orange_fire', 5: 'taxi', 7: 'purple_galaxy', 10: 'police', 15: 'carbon', 20: 'neon', 25: 'ferrari_f40', 30: 'bmw320i' };
             
-            if (level % 5 === 0) {
-                this.coins += 500;
-                alert(`Recompensa Premium: Super Bônus de 500 Moedas!`);
+            if (skinRewards[level]) {
+                const skinId = skinRewards[level];
+                if (!this.unlockedSkins.includes(skinId)) {
+                    this.unlockedSkins.push(skinId);
+                    alert(`PREMIUM: Você desbloqueou a skin ${skinId.toUpperCase()}!`);
+                } else {
+                    this.coins += 500;
+                    alert(`PREMIUM: Você já tinha essa skin! +500 Moedas como compensação.`);
+                }
             } else {
-                this.coins += 100;
-                alert(`Recompensa Premium: +100 Moedas!`);
+                this.coins += 150;
+                alert(`PREMIUM Nível ${level}: +150 Moedas!`);
             }
             this.claimedPaidRewards.push(level);
         }
