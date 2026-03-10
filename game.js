@@ -40,8 +40,9 @@ const game = {
     ACCEL: 150,          // Mais 30% (116 * 1.3)
     DECEL: 75,          // Mais 30% (58 * 1.3)
     DRIFT_INTENSITY: 0.15,
-    MAX_NITRO: 60,       // Duração máxima de 60 segundos
-    nitroLevel: 60,      // Nível atual do nitro
+    MAX_NITRO: 45,       // Reduzido para refletir o gasto mais rápido
+    nitroLevel: 45,      // Nível atual do nitro
+    nitroRefillTimer: 30, // Contador para recuperação automática
 
     // Input
     keys: { w: false, a: false, s: false, d: false, space: false },
@@ -1117,6 +1118,7 @@ const game = {
 
             this.createOpponents();
             this.nitroLevel = this.MAX_NITRO;
+            this.nitroRefillTimer = 30; // Inicia timer de 30s
             this.startTimer();
             console.log("Race started successfully.");
         } catch (err) {
@@ -1162,7 +1164,7 @@ const game = {
         const nitroFlame = this.playerCar.mesh.getObjectByName("nitro_flame");
         if (this.keys.space && this.playerCar.speed > 0 && this.nitroLevel > 0) {
             this.playerCar.speed += (accel * 5 * effects.nitro * delta);
-            this.nitroLevel -= delta; // Consome o nitro
+            this.nitroLevel -= delta * 1.30; // Gasta 30% mais rápido
             if (nitroFlame) {
                 nitroFlame.visible = true;
                 nitroFlame.scale.setScalar(1 + Math.random() * 0.5); // Flame flicker
@@ -1178,6 +1180,24 @@ const game = {
             nitroBar.style.width = `${nitroPercent}%`;
             // Visual feedback when empty
             nitroBar.style.boxShadow = nitroPercent > 0 ? '0 0 20px #ff00ff' : 'none';
+        }
+
+        // Recuperação Automática de Nitro a cada 30 segundos
+        this.nitroRefillTimer -= delta;
+        if (this.nitroRefillTimer <= 0) {
+            this.nitroLevel = this.MAX_NITRO;
+            this.nitroRefillTimer = 30;
+            console.log("NITRO REFILLED!");
+            
+            // Pequeno feedback visual no HUD se possível
+            const nitroBarRefill = document.getElementById('nitro-bar');
+            if (nitroBarRefill) {
+                nitroBarRefill.style.filter = 'brightness(2)';
+                setTimeout(() => { 
+                    const nb = document.getElementById('nitro-bar');
+                    if(nb) nb.style.filter = 'none'; 
+                }, 200);
+            }
         }
 
         // Clamp Speed
