@@ -947,6 +947,15 @@ const game = {
             else if (i === 1) oppGroup = this.createFerrariF40(0xff3333);
             else oppGroup = this.createFiatUno(colors[i]);
 
+            // Glowing Nitro Exhaust for opponent
+            const nitroGeo = new THREE.SphereGeometry(0.5, 8, 8);
+            const nitroMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 }); // Laranja/amarelo para diferir
+            const nitro = new THREE.Mesh(nitroGeo, nitroMat);
+            nitro.name = "nitro_flame";
+            nitro.position.set(0, 0.8, -4);
+            nitro.visible = false;
+            oppGroup.add(nitro);
+
             // Grid layout: All start at speed 0, in a 2-lane grid
             const x = (i % 2 === 0 ? -18 : 18);
             const z = -10 - (Math.floor(i / 2) * 15); // Slightly behind player who is at 0
@@ -1155,15 +1164,36 @@ const game = {
 
         // Update AI
         this.opponents.forEach(opp => {
-            // Accelerate to target speed
-            if (this.isRunning && opp.speed < opp.targetSpeed) {
-                opp.speed += opp.accel * delta;
+            let currentTargetSpeed = opp.targetSpeed;
+            const nitroFlame = opp.mesh.getObjectByName("nitro_flame");
+            
+            // Booster até o meio da volta (metade do trackLength)
+            if (this.isRunning && Math.abs(opp.zPos) < trackLength / 2) {
+                currentTargetSpeed = opp.targetSpeed * 1.5; // Ficam bem mais rápidos
+                
+                // Aceleração turbinada
+                if (opp.speed < currentTargetSpeed) {
+                    opp.speed += (opp.accel * 2.5) * delta;
+                }
+                
+                if (nitroFlame) {
+                    nitroFlame.visible = true;
+                    nitroFlame.scale.setScalar(1 + Math.random() * 0.5); // Fogo piscando
+                }
+            } else {
+                if (nitroFlame) nitroFlame.visible = false;
+                
+                // Desacelerar caso tenha passado da zona de boost, ou acelerar normalmente
+                if (opp.speed > opp.targetSpeed) {
+                    opp.speed -= (opp.accel * 0.5) * delta;
+                } else if (this.isRunning && opp.speed < opp.targetSpeed) {
+                    opp.speed += opp.accel * delta;
+                }
             }
 
             opp.zPos -= opp.speed * delta;
 
             // Bot Lap Logic
-            const trackLength = 10000;
             if (Math.abs(opp.zPos) >= trackLength) {
                 opp.zPos = 0;
                 opp.lap++;
