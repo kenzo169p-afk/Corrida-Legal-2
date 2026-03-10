@@ -45,32 +45,45 @@ const economy = {
     unlockedTitles: JSON.parse(localStorage.getItem('turbo_titles')) || ['Iniciante'],
     selectedTitle: localStorage.getItem('turbo_selected_title') || 'Iniciante',
     objectives: [
-        { 
-            id: 'race_3', 
-            name: 'Primeiros Passos', 
-            desc: 'Corra 3 vezes para provar que não é só um passeio.', 
-            target: 3, 
-            rewardType: 'title', 
-            reward: 'Corredor Noob',
-            claimed: JSON.parse(localStorage.getItem('turbo_obj_race_3')) || false
-        },
-        { 
-            id: 'race_10', 
-            name: 'Veterano das Ruas', 
-            desc: 'Complete 10 corridas.', 
-            target: 10, 
-            rewardType: 'coins', 
-            reward: 1000,
-            claimed: JSON.parse(localStorage.getItem('turbo_obj_race_10')) || false
-        }
+        { id: 'race_3', name: 'Primeiros Passos', desc: 'Corra 3 vezes.', target: 3, rewardType: 'title', reward: 'Corredor Noob', claimed: JSON.parse(localStorage.getItem('turbo_obj_race_3')) || false },
+        { id: 'race_10', name: 'Piloto de Fuga', desc: 'Complete 10 corridas.', target: 10, rewardType: 'title', reward: 'Piloto de Fuga', claimed: JSON.parse(localStorage.getItem('turbo_obj_race_10')) || false },
+        { id: 'race_25', name: 'Lenda do Asfalto', desc: 'Complete 25 corridas.', target: 25, rewardType: 'title', reward: 'Lenda do Asfalto', claimed: JSON.parse(localStorage.getItem('turbo_obj_race_25')) || false },
+        { id: 'race_50', name: 'Rei do Drift', desc: 'Complete 50 corridas.', target: 50, rewardType: 'title', reward: 'Rei do Drift', claimed: JSON.parse(localStorage.getItem('turbo_obj_race_50')) || false },
+        { id: 'race_100', name: 'Fantasma da Noite', desc: 'Complete 100 corridas.', target: 100, rewardType: 'title', reward: 'Fantasma da Noite', claimed: JSON.parse(localStorage.getItem('turbo_obj_race_100')) || false },
+        { id: 'race_250', name: 'Lenda Suprema', desc: 'Complete 250 corridas.', target: 250, rewardType: 'title', reward: 'Lenda Suprema', claimed: JSON.parse(localStorage.getItem('turbo_obj_race_250')) || false },
+        { id: 'race_500', name: 'Divindade do Asfalto', desc: 'Complete 500 corridas.', target: 500, rewardType: 'title', reward: 'Divindade do Asfalto', claimed: JSON.parse(localStorage.getItem('turbo_obj_race_500')) || false },
+        { id: 'coins_5000', name: 'O Magnata', desc: 'Acumule um total de 5.000 moedas ganhas.', target: 5000, rewardType: 'title', reward: 'Magnata das Pistas', claimed: JSON.parse(localStorage.getItem('turbo_obj_coins_5000')) || false }
+    ],
+
+    // Daily System
+    totalCoinsEarned: parseInt(localStorage.getItem('turbo_total_coins')) || 0,
+    dailyRaces: parseInt(localStorage.getItem('turbo_daily_races')) || 0,
+    lastDailyDate: localStorage.getItem('turbo_last_daily_date') || "",
+    dailyObjectives: [
+        { id: 'daily_2', name: 'Corrida Matinal', desc: 'Complete 2 corridas HOJE.', target: 2, rewardType: 'coins', reward: 300, claimed: JSON.parse(localStorage.getItem('turbo_obj_daily_2')) || false },
+        { id: 'daily_5', name: 'Trabalho Pesado', desc: 'Complete 5 corridas HOJE.', target: 5, rewardType: 'coins', reward: 800, claimed: JSON.parse(localStorage.getItem('turbo_obj_daily_5')) || false }
     ],
 
     currentUpgradeCost: 0,
 
     init() {
+        this.checkDailyRefresh();
         this.generateRandomCost();
         this.updateUI();
         this.updateSkinsUI();
+    },
+
+    checkDailyRefresh() {
+        const today = new Date().toLocaleDateString();
+        if (this.lastDailyDate !== today) {
+            this.lastDailyDate = today;
+            this.dailyRaces = 0;
+            this.dailyObjectives.forEach(obj => {
+                obj.claimed = false;
+                localStorage.setItem(`turbo_obj_${obj.id}`, false);
+            });
+            this.save();
+        }
     },
 
     generateRandomCost() {
@@ -87,9 +100,15 @@ const economy = {
         localStorage.setItem('turbo_races_count', this.racesCount);
         localStorage.setItem('turbo_titles', JSON.stringify(this.unlockedTitles));
         localStorage.setItem('turbo_selected_title', this.selectedTitle);
+        localStorage.setItem('turbo_daily_races', this.dailyRaces);
+        localStorage.setItem('turbo_last_daily_date', this.lastDailyDate);
+        localStorage.setItem('turbo_total_coins', this.totalCoinsEarned);
         
         // Save objectives status
         this.objectives.forEach(obj => {
+            localStorage.setItem(`turbo_obj_${obj.id}`, obj.claimed);
+        });
+        this.dailyObjectives.forEach(obj => {
             localStorage.setItem(`turbo_obj_${obj.id}`, obj.claimed);
         });
 
@@ -258,6 +277,7 @@ const economy = {
 
     addCoins(amount) {
         this.coins += amount;
+        if (amount > 0) this.totalCoinsEarned += amount;
         this.save();
     },
 
@@ -291,6 +311,7 @@ const economy = {
     // --- Objectives Methods ---
     incrementRacesCount() {
         this.racesCount++;
+        this.dailyRaces++;
         this.save();
     },
 
@@ -299,35 +320,24 @@ const economy = {
         if (!grid) return;
         grid.innerHTML = '';
 
+        // SEÇÃO DIÁRIA
+        const dailyHeader = document.createElement('div');
+        dailyHeader.innerHTML = `<h3 style="color: var(--secondary); margin: 15px 0 10px 0; font-size: 0.9rem; text-transform: uppercase;">Objetivos Diários</h3>`;
+        grid.appendChild(dailyHeader);
+
+        this.dailyObjectives.forEach(obj => {
+            this.renderObjectiveCard(grid, obj, this.dailyRaces);
+        });
+
+        // SEÇÃO PERMANENTE (TÍTULOS)
+        const permHeader = document.createElement('div');
+        permHeader.innerHTML = `<h3 style="color: var(--primary); margin: 25px 0 10px 0; font-size: 0.9rem; text-transform: uppercase;">Conquistas de Carreira</h3>`;
+        grid.appendChild(permHeader);
+
         this.objectives.forEach(obj => {
-            const isCompleted = this.racesCount >= obj.target;
-            const isClaimed = obj.claimed;
-
-            const card = document.createElement('div');
-            card.className = 'panel';
-            card.style.padding = '15px';
-            card.style.marginBottom = '15px';
-            card.style.border = isClaimed ? '1px solid rgba(0, 255, 136, 0.3)' : (isCompleted ? '2px solid var(--primary)' : '1px solid rgba(255,255,255,0.1)');
-            card.style.background = isClaimed ? 'rgba(0, 255, 136, 0.05)' : 'rgba(255,255,255,0.05)';
-
-            card.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div>
-                        <div style="font-weight: bold; color: ${isCompleted ? 'var(--primary)' : 'white'}">${obj.name}</div>
-                        <div style="font-size: 0.8rem; opacity: 0.7; margin: 5px 0;">${obj.desc}</div>
-                        <div style="font-size: 0.7rem; font-weight: bold; color: var(--secondary);">RECOMPENSA: ${obj.rewardType === 'title' ? `TÍTULO "${obj.reward}"` : `${obj.reward} 🪙`}</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 0.9rem; font-weight: bold;">${Math.min(this.racesCount, obj.target)}/${obj.target}</div>
-                        <button class="btn" style="padding: 5px 15px; font-size: 0.7rem; margin: 10px 0 0 0;" 
-                                ${(!isCompleted || isClaimed) ? 'disabled' : ''} 
-                                onclick="economy.claimObjectiveReward('${obj.id}')">
-                            ${isClaimed ? 'RESGATADO' : (isCompleted ? 'RESGATAR' : 'BLOQUEADO')}
-                        </button>
-                    </div>
-                </div>
-            `;
-            grid.appendChild(card);
+            let current = this.racesCount;
+            if (obj.id.startsWith('coins')) current = this.totalCoinsEarned;
+            this.renderObjectiveCard(grid, obj, current);
         });
 
         // Update Title Selector
@@ -344,20 +354,59 @@ const economy = {
         }
     },
 
+    renderObjectiveCard(container, obj, currentProgress) {
+        const isCompleted = currentProgress >= obj.target;
+        const isClaimed = obj.claimed;
+
+        const card = document.createElement('div');
+        card.className = 'panel';
+        card.style.padding = '12px';
+        card.style.marginBottom = '10px';
+        card.style.border = isClaimed ? '1px solid rgba(0, 255, 136, 0.3)' : (isCompleted ? '2px solid var(--primary)' : '1px solid rgba(255,255,255,0.1)');
+        card.style.background = isClaimed ? 'rgba(0, 255, 136, 0.05)' : 'rgba(255,255,255,0.05)';
+
+        card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; font-size: 0.9rem; color: ${isCompleted ? 'var(--primary)' : 'white'}">${obj.name}</div>
+                    <div style="font-size: 0.75rem; opacity: 0.7; margin: 3px 0;">${obj.desc}</div>
+                    <div style="font-size: 0.65rem; font-weight: bold; color: var(--secondary);">RECOMPENSA: ${obj.rewardType === 'title' ? `TÍTULO "${obj.reward}"` : `${obj.reward} 🪙`}</div>
+                </div>
+                <div style="text-align: right; min-width: 80px;">
+                    <div style="font-size: 0.8rem; font-weight: bold;">${Math.min(currentProgress, obj.target)}/${obj.target}</div>
+                    <button class="btn" style="padding: 4px 10px; font-size: 0.6rem; margin: 5px 0 0 0; min-width: 80px;" 
+                            ${(!isCompleted || isClaimed) ? 'disabled' : ''} 
+                            onclick="economy.claimObjectiveReward('${obj.id}')">
+                        ${isClaimed ? 'RESGATADO' : (isCompleted ? 'RESGATAR' : 'BLOQUEADO')}
+                    </button>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    },
+
     claimObjectiveReward(objId) {
-        const obj = this.objectives.find(o => o.id === objId);
-        if (!obj || obj.claimed || this.racesCount < obj.target) return;
+        let obj = this.objectives.find(o => o.id === objId);
+        let currentProgress = this.racesCount;
+        if (obj && obj.id.startsWith('coins')) currentProgress = this.totalCoinsEarned;
+
+        if (!obj) {
+            obj = this.dailyObjectives.find(o => o.id === objId);
+            currentProgress = this.dailyRaces;
+        }
+
+        if (!obj || obj.claimed || currentProgress < obj.target) return;
 
         obj.claimed = true;
         
         if (obj.rewardType === 'coins') {
             this.coins += obj.reward;
-            alert(`Parabéns! Você resgatou ${obj.reward} moedas!`);
+            alert(`Recompensa Diária: +${obj.reward} moedas!`);
         } else if (obj.rewardType === 'title') {
             if (!this.unlockedTitles.includes(obj.reward)) {
                 this.unlockedTitles.push(obj.reward);
                 this.selectedTitle = obj.reward;
-                alert(`Título Desbloqueado: "${obj.reward}"!`);
+                alert(`Título Lendário Desbloqueado: "${obj.reward}"!`);
             }
         }
 
