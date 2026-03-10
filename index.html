@@ -88,6 +88,23 @@
                     style="margin: 0; padding: 5px 15px; font-size: 0.70rem; height: auto; pointer-events: auto !important; cursor: pointer !important; border: 2px solid white; z-index: 10000; position: relative;"
                     onclick="if(window.game) window.game.goToMenu(); else alert('Erro: Jogo não carregado corretamente.');">ABANDONAR</button>
             </div>
+
+            <!-- Objetivos de Tempo -->
+            <div id="hud-objectives" style="position: fixed; top: 85px; left: 20px; background: rgba(0,0,0,0.7); padding: 15px; border: 2px solid var(--primary); border-radius: 10px; z-index: 9999; box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);">
+                <div style="color: var(--primary); font-size: 0.85rem; font-weight: 900; margin-bottom: 8px; letter-spacing: 1px;">OBJETIVOS DE TEMPO</div>
+                <div style="display: flex; justify-content: space-between; gap: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; margin-bottom: 5px;">
+                    <span style="color: #ffd700; text-shadow: 0 0 5px rgba(255,215,0,0.5);">⭐⭐⭐ Ouro</span>
+                    <span id="obj-gold" style="font-family: monospace; color: white;">01:10.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; gap: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; margin-bottom: 5px;">
+                    <span style="color: #c0c0c0; text-shadow: 0 0 5px rgba(192,192,192,0.5);">⭐⭐ Prata</span>
+                    <span id="obj-silver" style="font-family: monospace; color: white;">01:20.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; gap: 30px;">
+                    <span style="color: #cd7f32; text-shadow: 0 0 5px rgba(205,127,50,0.5);">⭐ Bronze</span>
+                    <span id="obj-bronze" style="font-family: monospace; color: white;">01:30.00</span>
+                </div>
+            </div>
         </div>
 
         <!-- Speedometer (Bottom Right) -->

@@ -20,9 +20,9 @@ const game = {
     track: [],
     currentTrackIndex: 0,
     tracks: [
-        { name: 'SÃO PAULO 2077', color: 0x00f2ff, envColor: 0x004444, fog: 0x000000 },
-        { name: 'CYBER NORTH', color: 0xff00ff, envColor: 0x440044, fog: 0x050005 },
-        { name: 'DESERT ROAD', color: 0xff7700, envColor: 0x442200, fog: 0x110500 }
+        { name: 'SÃO PAULO 2077', color: 0x00f2ff, envColor: 0x004444, fog: 0x000000, times: { gold: 65, silver: 80, bronze: 100 } },
+        { name: 'CYBER NORTH', color: 0xff00ff, envColor: 0x440044, fog: 0x050005, times: { gold: 65, silver: 80, bronze: 100 } },
+        { name: 'DESERT ROAD', color: 0xff7700, envColor: 0x442200, fog: 0x110500, times: { gold: 65, silver: 80, bronze: 100 } }
     ],
 
 
@@ -1000,6 +1000,19 @@ const game = {
         // Load Economy Effects
         this.playerCar.effects = economy.getCombinedEffects();
 
+        // Update Time Objectives UI
+        const currentTrack = this.tracks[this.currentTrackIndex];
+        const formatTime = (sec) => {
+            const m = Math.floor(sec / 60).toString().padStart(2, '0');
+            const s = (sec % 60).toString().padStart(2, '0');
+            return `${m}:${s}.00`;
+        };
+        if (document.getElementById('obj-gold')) {
+            document.getElementById('obj-gold').innerText = formatTime(currentTrack.times.gold);
+            document.getElementById('obj-silver').innerText = formatTime(currentTrack.times.silver);
+            document.getElementById('obj-bronze').innerText = formatTime(currentTrack.times.bronze);
+        }
+
         // UI transitions
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('shop-screen').classList.add('hidden');
@@ -1218,6 +1231,26 @@ const game = {
         this.isRunning = false;
         clearInterval(this.timerInterval);
 
+        const delta = Date.now() - this.startTime;
+        const totalSeconds = delta / 1000;
+        const currentTrack = this.tracks[this.currentTrackIndex];
+
+        let timeBonus = 0;
+        let starEarned = "";
+        if (totalSeconds <= currentTrack.times.gold) {
+            timeBonus = 1000;
+            starEarned = "⭐⭐⭐ (Ouro)";
+        } else if (totalSeconds <= currentTrack.times.silver) {
+            timeBonus = 500;
+            starEarned = "⭐⭐ (Prata)";
+        } else if (totalSeconds <= currentTrack.times.bronze) {
+            timeBonus = 200;
+            starEarned = "⭐ (Bronze)";
+        } else {
+            timeBonus = 0;
+            starEarned = "(Tempo Superior ao Bronze)";
+        }
+
         const trackLen = 10000;
         let finalPos = 1;
         const playerProgress = (this.totalLaps) * trackLen; // Player just finished
@@ -1230,17 +1263,30 @@ const game = {
         // REWARDS
         const positionReward = Math.max(0, 1000 - (finalPos - 1) * 200);
         const mandatoryBonus = 200; // OBRIGATÓRIO: Ganha sempre que termina
-        const totalReward = positionReward + mandatoryBonus;
+        const totalReward = positionReward + mandatoryBonus + timeBonus;
 
-        economy.addCoins(totalReward);
+        if (typeof economy !== 'undefined') {
+            economy.addCoins(totalReward);
+        } else {
+            console.log("Economy is not defined. Reward not added.");
+        }
 
-        this.showLeaderboard(finalPos, totalReward);
+        this.showLeaderboard(finalPos, totalReward, starEarned, timeBonus);
     },
 
-    showLeaderboard(playerPos, reward) {
+    showLeaderboard(playerPos, reward, starEarned, timeBonus) {
         document.getElementById('hud').classList.add('hidden');
         document.getElementById('hud-speed').classList.add('hidden');
         document.getElementById('results-screen').classList.remove('hidden');
+
+        // Atualizar o título para mostrar os objetivos
+        const titleEl = document.getElementById('final-result-title');
+        if (titleEl) {
+            titleEl.innerHTML = `RESULTADOS DA CORRIDA<br>
+                <div style="font-size: 1rem; color: #ffd700; margin-top: 10px; text-shadow: none; font-weight: bold; font-family: sans-serif;">
+                    Objetivo Concluído: ${starEarned || "Nenh"} <span style="color: var(--success); margin-left: 10px;">+${timeBonus || 0} 🪙</span>
+                </div>`;
+        }
 
         const tbody = document.getElementById('leaderboard-body');
         tbody.innerHTML = '';
