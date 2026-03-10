@@ -1380,7 +1380,6 @@ const game = {
 
         if (typeof economy !== 'undefined') {
             economy.incrementRacesCount();
-            economy.addXP(100); // 100 XP por partida
             economy.addCoins(totalReward);
         } else {
             console.log("Economy is not defined. Reward not added.");
@@ -1540,18 +1539,6 @@ const game = {
 
     hideObjectives() {
         document.getElementById('objective-screen').classList.add('hidden');
-        document.getElementById('main-menu').classList.remove('hidden');
-    },
-
-    showBattlePass() {
-        document.getElementById('main-menu').classList.add('hidden');
-        document.getElementById('credits-screen').classList.add('hidden');
-        document.getElementById('battlepass-screen').classList.remove('hidden');
-        economy.updateBattlePassUI();
-    },
-
-    hideBattlePass() {
-        document.getElementById('battlepass-screen').classList.add('hidden');
         document.getElementById('main-menu').classList.remove('hidden');
     }
 };
