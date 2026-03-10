@@ -47,6 +47,8 @@
                     <button class="btn" onclick="game.showShop()">THE CHAOS SHOP</button>
                     <button class="btn" style="border-color: #ffcc00; color: #ffcc00;"
                         onclick="game.showSkins()">GARAGEM DE SKINS</button>
+                    <button class="btn" style="border-color: #00ff88; color: #00ff88;"
+                        onclick="game.showObjectives()">OBJETIVOS</button>
                     <button class="btn" style="font-size: 0.8rem;" onclick="game.showCredits()">CRÉDITOS</button>
 
                 </div>
@@ -202,6 +204,28 @@
                 </div>
             </div>
         </div>
+        <!-- Objectives Screen -->
+        <div id="objective-screen" class="screen hidden">
+            <div class="panel" style="width: 85%; max-width: 600px;">
+                <h2 style="color: #00ff88; text-shadow: 0 0 15px #00ff88;">SALA DE TROFÉUS & OBJETIVOS</h2>
+                <p>Complete desafios para ganhar recompensas e títulos exclusivos.</p>
+
+                <div style="margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div class="hud-label">Título Selecionado:</div>
+                    <select id="title-selector" class="btn" style="width: 100%; margin: 10px 0; background: rgba(0,0,0,0.5); border: 1px solid var(--primary); color: white;" onchange="economy.changeTitle(this.value)">
+                        <!-- Populated by economy.js -->
+                    </select>
+                </div>
+
+                <div id="objectives-list-container" style="max-height: 40vh; overflow-y: auto; margin: 20px 0;">
+                    <!-- Dynamically populated by economy.js -->
+                </div>
+
+                <div style="text-align: center;">
+                    <button class="btn" onclick="game.hideObjectives()">VOLTAR AO MENU</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Credits Screen -->
         <div id="credits-screen" class="screen hidden">
@@ -228,7 +252,7 @@
                     <thead>
                         <tr>
                             <th>POS</th>
-                            <th>PILOTO</th>
+                            <th>PILOTO (TÍTULO)</th>
                             <th>MELHOR VOLTA</th>
                             <th>RECOMPENSA</th>
                         </tr>

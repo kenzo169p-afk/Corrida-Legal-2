@@ -40,6 +40,31 @@ const economy = {
     unlockedSkins: JSON.parse(localStorage.getItem('turbo_skins_unlocked')) || ['default'],
     selectedSkin: localStorage.getItem('turbo_selected_skin') || 'default',
 
+    // New: Objectives and Titles
+    racesCount: parseInt(localStorage.getItem('turbo_races_count')) || 0,
+    unlockedTitles: JSON.parse(localStorage.getItem('turbo_titles')) || ['Iniciante'],
+    selectedTitle: localStorage.getItem('turbo_selected_title') || 'Iniciante',
+    objectives: [
+        { 
+            id: 'race_3', 
+            name: 'Primeiros Passos', 
+            desc: 'Corra 3 vezes para provar que não é só um passeio.', 
+            target: 3, 
+            rewardType: 'title', 
+            reward: 'Corredor Noob',
+            claimed: JSON.parse(localStorage.getItem('turbo_obj_race_3')) || false
+        },
+        { 
+            id: 'race_10', 
+            name: 'Veterano das Ruas', 
+            desc: 'Complete 10 corridas.', 
+            target: 10, 
+            rewardType: 'coins', 
+            reward: 1000,
+            claimed: JSON.parse(localStorage.getItem('turbo_obj_race_10')) || false
+        }
+    ],
+
     currentUpgradeCost: 0,
 
     init() {
@@ -59,8 +84,18 @@ const economy = {
         localStorage.setItem('turbo_inventory', JSON.stringify(this.inventory));
         localStorage.setItem('turbo_skins_unlocked', JSON.stringify(this.unlockedSkins));
         localStorage.setItem('turbo_selected_skin', this.selectedSkin);
+        localStorage.setItem('turbo_races_count', this.racesCount);
+        localStorage.setItem('turbo_titles', JSON.stringify(this.unlockedTitles));
+        localStorage.setItem('turbo_selected_title', this.selectedTitle);
+        
+        // Save objectives status
+        this.objectives.forEach(obj => {
+            localStorage.setItem(`turbo_obj_${obj.id}`, obj.claimed);
+        });
+
         this.updateUI();
         this.updateSkinsUI();
+        this.updateObjectivesUI();
     },
 
     updateUI() {
@@ -251,6 +286,89 @@ const economy = {
         });
 
         return base;
+    },
+
+    // --- Objectives Methods ---
+    incrementRacesCount() {
+        this.racesCount++;
+        this.save();
+    },
+
+    updateObjectivesUI() {
+        const grid = document.getElementById('objectives-list-container');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        this.objectives.forEach(obj => {
+            const isCompleted = this.racesCount >= obj.target;
+            const isClaimed = obj.claimed;
+
+            const card = document.createElement('div');
+            card.className = 'panel';
+            card.style.padding = '15px';
+            card.style.marginBottom = '15px';
+            card.style.border = isClaimed ? '1px solid rgba(0, 255, 136, 0.3)' : (isCompleted ? '2px solid var(--primary)' : '1px solid rgba(255,255,255,0.1)');
+            card.style.background = isClaimed ? 'rgba(0, 255, 136, 0.05)' : 'rgba(255,255,255,0.05)';
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div style="font-weight: bold; color: ${isCompleted ? 'var(--primary)' : 'white'}">${obj.name}</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7; margin: 5px 0;">${obj.desc}</div>
+                        <div style="font-size: 0.7rem; font-weight: bold; color: var(--secondary);">RECOMPENSA: ${obj.rewardType === 'title' ? `TÍTULO "${obj.reward}"` : `${obj.reward} 🪙`}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.9rem; font-weight: bold;">${Math.min(this.racesCount, obj.target)}/${obj.target}</div>
+                        <button class="btn" style="padding: 5px 15px; font-size: 0.7rem; margin: 10px 0 0 0;" 
+                                ${(!isCompleted || isClaimed) ? 'disabled' : ''} 
+                                onclick="economy.claimObjectiveReward('${obj.id}')">
+                            ${isClaimed ? 'RESGATADO' : (isCompleted ? 'RESGATAR' : 'BLOQUEADO')}
+                        </button>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        // Update Title Selector
+        const titleSelect = document.getElementById('title-selector');
+        if (titleSelect) {
+            titleSelect.innerHTML = '';
+            this.unlockedTitles.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t;
+                opt.text = t;
+                opt.selected = this.selectedTitle === t;
+                titleSelect.appendChild(opt);
+            });
+        }
+    },
+
+    claimObjectiveReward(objId) {
+        const obj = this.objectives.find(o => o.id === objId);
+        if (!obj || obj.claimed || this.racesCount < obj.target) return;
+
+        obj.claimed = true;
+        
+        if (obj.rewardType === 'coins') {
+            this.coins += obj.reward;
+            alert(`Parabéns! Você resgatou ${obj.reward} moedas!`);
+        } else if (obj.rewardType === 'title') {
+            if (!this.unlockedTitles.includes(obj.reward)) {
+                this.unlockedTitles.push(obj.reward);
+                this.selectedTitle = obj.reward;
+                alert(`Título Desbloqueado: "${obj.reward}"!`);
+            }
+        }
+
+        this.save();
+    },
+
+    changeTitle(newTitle) {
+        if (this.unlockedTitles.includes(newTitle)) {
+            this.selectedTitle = newTitle;
+            this.save();
+        }
     }
 };
 

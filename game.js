@@ -1379,6 +1379,7 @@ const game = {
         const totalReward = positionReward + mandatoryBonus + timeBonus;
 
         if (typeof economy !== 'undefined') {
+            economy.incrementRacesCount();
             economy.addCoins(totalReward);
         } else {
             console.log("Economy is not defined. Reward not added.");
@@ -1406,12 +1407,12 @@ const game = {
 
         // Generic AI times for flair
         const contestants = [
-            { name: 'VOCÊ', pos: playerPos, time: document.getElementById('hud-timer').innerText, reward: reward },
-            { name: 'Drift King', pos: playerPos === 1 ? 2 : 1, time: '01:12.45', reward: playerPos === 1 ? 800 : 1000 },
-            { name: 'Neon Bolt', pos: 3, time: '01:15.20', reward: 600 },
-            { name: 'Cyber Rogue', pos: 4, time: '01:18.10', reward: 400 },
-            { name: 'Speed Demon', pos: 5, time: '01:21.05', reward: 200 },
-            { name: 'Turbo Titan', pos: 6, time: '01:25.88', reward: 0 }
+            { name: `VOCÊ (${economy.selectedTitle})`, pos: playerPos, time: document.getElementById('hud-timer').innerText, reward: reward },
+            { name: 'Drift King (Pro)', pos: playerPos === 1 ? 2 : 1, time: '01:12.45', reward: playerPos === 1 ? 800 : 1000 },
+            { name: 'Neon Bolt (Racer)', pos: 3, time: '01:15.20', reward: 600 },
+            { name: 'Cyber Rogue (Hack)', pos: 4, time: '01:18.10', reward: 400 },
+            { name: 'Speed Demon (Evil)', pos: 5, time: '01:21.05', reward: 200 },
+            { name: 'Turbo Titan (Boss)', pos: 6, time: '01:25.88', reward: 0 }
         ];
 
         contestants.sort((a, b) => a.pos - b.pos);
@@ -1482,6 +1483,7 @@ const game = {
         document.getElementById('hud-speed').classList.add('hidden');
         document.getElementById('results-screen').classList.add('hidden');
         document.getElementById('skin-screen').classList.add('hidden');
+        document.getElementById('objective-screen').classList.add('hidden');
         document.getElementById('credits-screen').classList.add('hidden');
         document.getElementById('main-menu').classList.remove('hidden');
 
@@ -1524,6 +1526,18 @@ const game = {
 
     hideCredits() {
         document.getElementById('credits-screen').classList.add('hidden');
+        document.getElementById('main-menu').classList.remove('hidden');
+    },
+
+    showObjectives() {
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('credits-screen').classList.add('hidden');
+        document.getElementById('objective-screen').classList.remove('hidden');
+        economy.updateObjectivesUI();
+    },
+
+    hideObjectives() {
+        document.getElementById('objective-screen').classList.add('hidden');
         document.getElementById('main-menu').classList.remove('hidden');
     }
 };
