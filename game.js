@@ -1456,39 +1456,57 @@ const game = {
     },
 
     goToMenu() {
-        this.lap = 1;
-        this.isRunning = false;
-        this.isPaused = false;
-        this.currentState = 'menu';
-        
-        const btn = document.getElementById('btn-pause');
-        if (btn) btn.innerText = "PAUSAR";
+        console.log("Returning to menu...");
+        try {
+            this.isRunning = false;
+            this.isPaused = false;
+            this.currentState = 'menu';
+            
+            if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+            }
 
-        if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-            this.timerInterval = null;
+            const btnPause = document.getElementById('btn-pause');
+            if (btnPause) btnPause.innerText = "PAUSAR";
+
+            // Stop sounds/Reset volume
+            const music = document.getElementById('bg-music');
+            if (music) music.volume = 0.2;
+
+            // Cleanup opponents
+            if (this.opponents) {
+                this.opponents.forEach(opp => {
+                    if (opp.mesh && opp.mesh.parent) {
+                        this.scene.remove(opp.mesh);
+                    }
+                });
+                this.opponents = [];
+            }
+
+            // Hide all UI screens safely
+            const screens = [
+                'hud', 'hud-speed', 'results-screen', 'skin-screen', 
+                'objective-screen', 'credits-screen', 'shop-screen', 'battlepass-screen'
+            ];
+            screens.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+            
+            const mainMenu = document.getElementById('main-menu');
+            if (mainMenu) mainMenu.classList.remove('hidden');
+
+            // Force update UI
+            if (typeof economy !== 'undefined') {
+                economy.updateUI();
+            }
+        } catch (err) {
+            console.error("Critical error in goToMenu:", err);
+            // Emergency fallback: just show the menu if everything else fails
+            const menu = document.getElementById('main-menu');
+            if (menu) menu.classList.remove('hidden');
         }
-
-        // Lower music volume for menu
-        const music = document.getElementById('bg-music');
-        if (music) music.volume = 0.2;
-
-        // Limpar oponentes para não ficarem rodando em background
-        this.opponents.forEach(opp => {
-            if (opp.mesh && opp.mesh.parent) this.scene.remove(opp.mesh);
-        });
-        this.opponents = [];
-
-        document.getElementById('hud').classList.add('hidden');
-        document.getElementById('hud-speed').classList.add('hidden');
-        document.getElementById('results-screen').classList.add('hidden');
-        document.getElementById('skin-screen').classList.add('hidden');
-        document.getElementById('objective-screen').classList.add('hidden');
-        document.getElementById('battlepass-screen').classList.add('hidden');
-        document.getElementById('credits-screen').classList.add('hidden');
-        document.getElementById('main-menu').classList.remove('hidden');
-
-        economy.updateUI();
     },
     
     togglePause() {

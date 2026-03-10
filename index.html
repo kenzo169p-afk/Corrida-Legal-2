@@ -86,15 +86,16 @@
                     <span class="hud-label">Tempo</span>
                     <span id="hud-timer" class="hud-value" style="font-family: monospace;">00:00.00</span>
                 </div>
-                <!-- Controles -->
-                <div style="display: flex; gap: 10px; margin-left: 10px;">
-                    <button id="btn-pause" class="btn"
-                        style="margin: 0; padding: 5px 15px; font-size: 0.70rem; height: auto; pointer-events: auto !important; cursor: pointer !important; border: 2px solid white; z-index: 10000; position: relative;"
-                        onclick="if(window.game) window.game.togglePause(); else alert('Erro: Jogo não carregado corretamente.');">PAUSAR</button>
-                    <button class="btn"
-                        style="margin: 0; padding: 5px 15px; font-size: 0.70rem; height: auto; pointer-events: auto !important; cursor: pointer !important; border: 2px solid #ff3333; color: #ff3333; z-index: 10000; position: relative;"
-                        onclick="if(window.game) window.game.goToMenu(); else alert('Erro: Jogo não carregado corretamente.');">ABANDONAR</button>
-                </div>
+            </div>
+
+            <!-- Controles (Top Right) -->
+            <div style="display: flex; gap: 10px; position: fixed; top: 20px; right: 20px; z-index: 10001;">
+                <button id="btn-pause" class="btn"
+                    style="margin: 0; padding: 8px 20px; font-size: 0.8rem; background: rgba(0,0,0,0.6); border: 2px solid white; cursor: pointer; pointer-events: auto;"
+                    onclick="game.togglePause()">PAUSAR</button>
+                <button class="btn"
+                    style="margin: 0; padding: 8px 20px; font-size: 0.8rem; background: rgba(255,50,50,0.2); border: 2px solid #ff3333; color: #ff3333; cursor: pointer; pointer-events: auto;"
+                    onclick="if(confirm('Deseja realmente abandonar a corrida?')) game.goToMenu()">ABANDONAR</button>
             </div>
 
             <!-- Objetivos de Tempo -->
@@ -233,47 +234,46 @@
                     <button class="btn" onclick="game.hideObjectives()">VOLTAR AO MENU</button>
                 </div>
             </div>
+        </div>
 
-
-            <!-- Credits Screen -->
-            <div id="credits-screen" class="screen hidden">
-                <div class="panel" style="text-align: center; width: 400px;">
-                    <h2 style="color: var(--primary);">CRÉDITOS</h2>
-                    <div style="margin: 30px 0;">
-                        <p class="hud-label">DESENVOLVIDO POR / CREATED BY</p>
-                        <p
-                            style="font-size: 1.5rem; font-weight: 900; color: white; margin-top: 10px; text-transform: uppercase; letter-spacing: 2px;">
-                            Nicolas Kenzo Kawakami Goya
-                        </p>
-                    </div>
-                    <button class="btn" onclick="game.hideCredits()">VOLTAR AO MENU</button>
+        <!-- Credits Screen -->
+        <div id="credits-screen" class="screen hidden">
+            <div class="panel" style="text-align: center; width: 400px;">
+                <h2 style="color: var(--primary);">CRÉDITOS</h2>
+                <div style="margin: 30px 0;">
+                    <p class="hud-label">DESENVOLVIDO POR / CREATED BY</p>
+                    <p
+                        style="font-size: 1.5rem; font-weight: 900; color: white; margin-top: 10px; text-transform: uppercase; letter-spacing: 2px;">
+                        Nicolas Kenzo Kawakami Goya
+                    </p>
                 </div>
+                <button class="btn" onclick="game.hideCredits()">VOLTAR AO MENU</button>
             </div>
+        </div>
 
 
-            <!-- Race Results / Leaderboard -->
-            <div id="results-screen" class="screen hidden">
-                <div class="panel" style="width: 90%; max-width: 600px;">
-                    <h2 id="final-result-title">RESULTADOS DA CORRIDA</h2>
+        <!-- Race Results / Leaderboard -->
+        <div id="results-screen" class="screen hidden">
+            <div class="panel" style="width: 90%; max-width: 600px;">
+                <h2 id="final-result-title">RESULTADOS DA CORRIDA</h2>
 
-                    <table class="leaderboard-table">
-                        <thead>
-                            <tr>
-                                <th>POS</th>
-                                <th>PILOTO (TÍTULO)</th>
-                                <th>MELHOR VOLTA</th>
-                                <th>RECOMPENSA</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leaderboard-body">
-                            <!-- Dynamically populated -->
-                        </tbody>
-                    </table>
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>POS</th>
+                            <th>PILOTO (TÍTULO)</th>
+                            <th>MELHOR VOLTA</th>
+                            <th>RECOMPENSA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- Dynamically populated -->
+                    </tbody>
+                </table>
 
-                    <div style="text-align: center; margin-top: 30px;">
-                        <button class="btn primary" onclick="game.goToMenu()">VOLTAR AO MENU</button>
-                        <button class="btn" onclick="game.showShop()">MAIS UPGRADES</button>
-                    </div>
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn primary" onclick="game.goToMenu()">VOLTAR AO MENU</button>
+                    <button class="btn" onclick="game.showShop()">MAIS UPGRADES</button>
                 </div>
             </div>
         </div>
