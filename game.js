@@ -1237,8 +1237,8 @@ const game = {
 
             // Recompensa por volta completada
             if (typeof economy !== 'undefined') {
-                economy.addCoins(200);
-                console.log("Lap complete! +200 coins");
+                economy.addCoins(2000);
+                console.log("Lap complete! +2000 coins");
             }
 
             if (this.lap > this.totalLaps) {
@@ -1416,7 +1416,7 @@ const game = {
 
         // REWARDS
         const positionReward = Math.max(0, 1000 - (finalPos - 1) * 200);
-        const mandatoryBonus = 200; // OBRIGATÓRIO: Ganha sempre que termina
+        const mandatoryBonus = 2000; // OBRIGATÓRIO: Ganha sempre que termina
         const totalReward = positionReward + mandatoryBonus + timeBonus;
 
         if (typeof economy !== 'undefined') {
