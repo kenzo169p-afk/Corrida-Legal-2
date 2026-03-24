@@ -951,6 +951,96 @@ const game = {
         return f40Group;
     },
 
+    createFiatMobi(color) {
+        console.log("Creating Fiat Mobi...");
+        const mobiGroup = new THREE.Group();
+
+        const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.3 });
+        const plasticMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 }); // Black plastic details
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 1, roughness: 0 });
+
+        // 1. Main Body (Compact and slightly rounded)
+        const bodyGeo = new THREE.BoxGeometry(4.0, 1.4, 7.0);
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.y = 1.0;
+        mobiGroup.add(body);
+
+        // 2. Cabin (Taller and rounder back)
+        const cabinGeo = new THREE.BoxGeometry(3.6, 1.4, 4.0);
+        const cabin = new THREE.Mesh(cabinGeo, bodyMat);
+        cabin.position.set(0, 2.2, -0.5);
+        mobiGroup.add(cabin);
+
+        // 3. Windshield (Slightly angled)
+        const windshield = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.6), glassMat);
+        windshield.rotation.x = -Math.PI / 3.8;
+        windshield.position.set(0, 2.1, 1.4);
+        mobiGroup.add(windshield);
+
+        // 4. Rear Window (Almost vertical, characteristic of Mobi is the black glass hatch)
+        const rearGlass = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.4), glassMat);
+        rearGlass.rotation.x = Math.PI / 12;
+        rearGlass.position.set(0, 2.1, -2.52);
+        mobiGroup.add(rearGlass);
+
+        // 5. Plastic Arches and Bumpers
+        const archGeo = new THREE.BoxGeometry(4.2, 0.4, 1.4);
+        const frontArch = new THREE.Mesh(archGeo, plasticMat);
+        frontArch.position.set(0, 0.9, 2.2);
+        mobiGroup.add(frontArch);
+        
+        const rearArch = new THREE.Mesh(archGeo, plasticMat);
+        rearArch.position.set(0, 0.9, -2.2);
+        mobiGroup.add(rearArch);
+
+        // Front grill (Large black plastic)
+        const grill = new THREE.Mesh(new THREE.PlaneGeometry(3.8, 0.8), plasticMat);
+        grill.position.set(0, 1.0, 3.51);
+        mobiGroup.add(grill);
+
+        // 6. Wheels (Relatively small but chunky)
+        const wheelGeo = new THREE.CylinderGeometry(0.75, 0.75, 0.6, 16);
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x050505 });
+        const wheelPos = [
+            [1.8, 0.75, 2.2], [-1.8, 0.75, 2.2], // Front
+            [1.8, 0.75, -2.2], [-1.8, 0.75, -2.2] // Rear
+        ];
+        wheelPos.forEach(pos => {
+            const w = new THREE.Mesh(wheelGeo, wheelMat);
+            w.rotation.z = Math.PI / 2;
+            w.position.set(...pos);
+            mobiGroup.add(w);
+
+            // Hubcaps
+            const rim = new THREE.Mesh(new THREE.CircleGeometry(0.4, 8), new THREE.MeshStandardMaterial({ color: 0xcccccc }));
+            rim.position.set(pos[0] * 1.05, pos[1], pos[2]);
+            rim.rotation.y = pos[0] > 0 ? Math.PI / 2 : -Math.PI / 2;
+            mobiGroup.add(rim);
+        });
+
+        // 7. Headlights (Large and swept back slightly)
+        const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const hLight1 = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.5), lightMat);
+        hLight1.position.set(1.4, 1.3, 3.51);
+        mobiGroup.add(hLight1);
+        const hLight2 = hLight1.clone();
+        hLight2.position.set(-1.4, 1.3, 3.51);
+        mobiGroup.add(hLight2);
+
+        // 8. Taillights
+        const tLightMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const tLight1 = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.6), tLightMat);
+        tLight1.rotation.y = Math.PI;
+        tLight1.position.set(1.5, 1.4, -3.51);
+        mobiGroup.add(tLight1);
+        const tLight2 = tLight1.clone();
+        tLight2.position.set(-1.5, 1.4, -3.51);
+        tLight2.rotation.y = Math.PI;
+        mobiGroup.add(tLight2);
+
+        return mobiGroup;
+    },
+
     createPlayerCar() {
         // Get selected skin color and ID from economy
         const selectedId = typeof economy !== 'undefined' ? economy.selectedSkin : 'default';
@@ -969,6 +1059,8 @@ const game = {
             carGroup = this.createMcQueen();
         } else if (selectedId === 'ferrari_f40') {
             carGroup = this.createFerrariF40(skinColor);
+        } else if (selectedId === 'fiat_mobi') {
+            carGroup = this.createFiatMobi(skinColor);
         } else if (selectedId === 'corinthians' || selectedId === 'palmeiras' || selectedId === 'saopaulo' || selectedId === 'santos') {
             carGroup = this.createTeamSkin(selectedId, skinColor);
         } else {
@@ -1006,6 +1098,7 @@ const game = {
             let oppGroup;
             if (i === 0) oppGroup = this.createBMW(0xdddddd);
             else if (i === 1) oppGroup = this.createFerrariF40(0xff3333);
+            else if (i === 2) oppGroup = this.createFiatMobi(colors[i]);
             else oppGroup = this.createFiatUno(colors[i]);
 
             // Glowing Nitro Exhaust for opponent

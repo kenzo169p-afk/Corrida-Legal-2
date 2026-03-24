@@ -22,6 +22,7 @@ const economy = {
     ],
     availableSkins: [
         { id: 'default', name: 'Branco Firma', color: 0xeeeeee, cost: 0 },
+        { id: 'fiat_mobi', name: 'Fiat Mobi', color: 0xffffff, cost: 400 },
         { id: 'carbon', name: 'Carbono Tech', color: 0x111111, cost: 100 },
         { id: 'gold', name: 'Uno de Ouro', color: 0xffd700, cost: 500 },
         { id: 'neon', name: 'Neon Pink', color: 0xff00ff, cost: 250 },
